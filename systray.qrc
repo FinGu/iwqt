@@ -1,0 +1,7 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/">
+   <file>images/good.png</file>
+   <file>images/mid.png</file>
+   <file>images/bad.png</file>
+</qresource>
+</RCC>

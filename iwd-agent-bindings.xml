@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node>
+    <interface name="net.connman.iwd.Agent">
+        <method name="Release"/>
+        <method name="RequestPassphrase">
+            <arg type="o" name="path" direction="in"/>
+            <arg type="s" direction="out"/>
+        </method>
+        <method name="RequestPrivateKeyPassphrase">
+            <arg type="o" name="path" direction="in"/>
+            <arg type="s" direction="out"/>
+        </method>
+        <method name="RequestUserNameAndPassword">
+            <arg type="o" name="path" direction="in"/>
+            <arg type="s" direction="out"/>
+            <arg type="s" direction="out"/>
+        </method>
+        <method name="Cancel">
+            <arg type="s" name="reason" direction="in"/>
+        </method>
+    </interface>
+</node>

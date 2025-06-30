@@ -20,6 +20,7 @@ inline constexpr auto ADAPTER_IFACE     = "net.connman.iwd.Adapter";
 inline constexpr auto DEVICE_IFACE      = "net.connman.iwd.Device";
 inline constexpr auto STATION_IFACE      = "net.connman.iwd.Station";
 inline constexpr auto NETWORK_IFACE      = "net.connman.iwd.Network";
+inline constexpr auto AGENTMANAGER_IFACE = "net.connman.iwd.AgentManager";
 }
 
 class device;

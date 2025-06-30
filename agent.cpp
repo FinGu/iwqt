@@ -26,7 +26,7 @@ void agent::_register(iwd *manager) {
                                     manager->service_name,
                                     sdbus::ObjectPath{"/net/connman/iwd"});
 
-    auto call = proxy->createMethodCall(sdbus::InterfaceName{"net.connman.iwd.AgentManager"}, sdbus::MethodName{"RegisterAgent"});
+    auto call = proxy->createMethodCall(sdbus::InterfaceName{iwd_constants::AGENTMANAGER_IFACE}, sdbus::MethodName{"RegisterAgent"});
 
     call << path;
 

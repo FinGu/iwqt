@@ -24,4 +24,4 @@ preprocessed = qt6.preprocess(
   qresources: ['systray.qrc']
 )
 
-executable('out', sources + preprocessed, dependencies: [qt6_dep, dbus_dep])
+executable('iwqt', sources + preprocessed, dependencies: [qt6_dep, dbus_dep], install: true, install_dir: '/usr/local/bin')

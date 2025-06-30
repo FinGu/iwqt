@@ -1,4 +1,4 @@
-# iwqt
+# IWQt
 An iwd network applet for linux systems made using Qt and sdbus-c++
 
 ## Prerequisites

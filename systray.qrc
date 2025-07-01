@@ -3,5 +3,7 @@
    <file>images/good.png</file>
    <file>images/mid.png</file>
    <file>images/bad.png</file>
+   <file>images/no.png</file>
+   <file>images/x.png</file>
 </qresource>
 </RCC>

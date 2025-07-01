@@ -28,6 +28,12 @@
 #include <cstdio>
 #include <unistd.h>
 
+constexpr auto STRONG_ICON_PATH = ":/images/good.png";
+constexpr auto MODERATE_ICON_PATH = ":/images/mid.png";
+constexpr auto WEAK_ICON_PATH = ":/images/bad.png";
+constexpr auto DISCONNECTED_ICON_PATH = ":/images/no.png";
+constexpr auto FAILURE_ICON_PATH = ":/images/x.png";
+
 Window::Window(iwd &in): manager(in) {
     createTray();
 
@@ -36,7 +42,7 @@ Window::Window(iwd &in): manager(in) {
 
     fillMenu();
 
-    this->cur_device.scan();
+    refreshNetworks(true);
 
     makeAgent();
 }
@@ -47,7 +53,7 @@ void Window::iwdNotUp() {
 
 void Window::createTray() {
     trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setIcon(QIcon(":/images/good.png"));
+    trayIcon->setIcon(QIcon(FAILURE_ICON_PATH));
 }
 
 void Window::instantiateDevice() {
@@ -171,19 +177,19 @@ void Window::makeAgent() {
     this->manager.register_agent(std::move(ui));
 }
 
-void Window::addNetwork(network n) {
+QIcon Window::addNetwork(network n) {
     QIcon icon;
     auto action = networksMenu->addAction(n.name.c_str());
 
     switch(n.strength()) {
     case network::strength_type::WEAK:
-        icon = QIcon(":/images/bad.png");
+        icon = QIcon(WEAK_ICON_PATH);
         break;
     case network::strength_type::MODERATE:
-        icon = QIcon(":/images/mid.png");
+        icon = QIcon(MODERATE_ICON_PATH);
         break;
     case network::strength_type::STRONG:
-        icon = QIcon(":/images/good.png");
+        icon = QIcon(STRONG_ICON_PATH);
         break;
     }
 
@@ -196,21 +202,25 @@ void Window::addNetwork(network n) {
             action->setChecked(true);
         });
         trayIconMenu->setIcon(icon);
-        return;
+        return icon;
     }
 
     connect(action, &QAction::triggered, this, [=] {
         this->cur_device.connect(n);
+        trayIcon->setIcon(icon);
     });
+
+    return icon;
 }
 
-void Window::processConnectedNetwork(network n) {
-    addNetwork(n);
+QIcon Window::processConnectedNetwork(network n) {
+    auto icon = addNetwork(n);
 
     QAction* disconnectAction = new QAction(tr("&Disconnect"), this);
 
     connect(disconnectAction, &QAction::triggered, this, [this] {
         this->cur_device.disconnect();
+        trayIcon->setIcon(QIcon(DISCONNECTED_ICON_PATH));
     });
 
     networksMenu->addAction(disconnectAction);
@@ -218,6 +228,7 @@ void Window::processConnectedNetwork(network n) {
     QAction* availableLabel = new QAction(tr("&Available"), this);
     availableLabel->setEnabled(false);
     networksMenu->addAction(availableLabel);
+    return icon;
 }
 
 void Window::refreshNetworks(bool should_scan) {
@@ -228,19 +239,24 @@ void Window::refreshNetworks(bool should_scan) {
     }
 
     auto inetworks = this->cur_device.get_networks();
+    auto size = inetworks.size();
 
-    for(size_t i = 0; i < inetworks.size(); ++i) {
+    for(size_t i = 0; i < size; ++i) {
         auto network = inetworks[i];
 
         if(!network.connected) {
             continue;
         }
 
-        processConnectedNetwork(network);
+        trayIcon->setIcon(processConnectedNetwork(network));
 
         inetworks.erase(inetworks.begin() + i);
 
         break;
+    }
+
+    if(size == inetworks.size()){
+        trayIcon->setIcon(QIcon(DISCONNECTED_ICON_PATH));
     }
 
     for(auto n: inetworks) {

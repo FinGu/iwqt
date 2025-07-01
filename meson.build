@@ -24,7 +24,7 @@ preprocessed = qt6.preprocess(
   qresources: ['systray.qrc']
 )
 
-executable('iwqt', sources + preprocessed, dependencies: [qt6_dep, dbus_dep], install: true, install_dir: '/usr/local/bin')
+executable('iwqt', sources + preprocessed, dependencies: [qt6_dep, dbus_dep], install: true, install_dir: get_option('bindir'))
 
 install_data('images/good.png', rename: 'icon.png', install_dir: get_option('datadir') / 'iwqt')
 install_data('iwqt.desktop', install_dir: get_option('datadir') / 'applications')

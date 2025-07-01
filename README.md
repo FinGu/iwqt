@@ -7,6 +7,9 @@ An iwd network applet for linux systems made using Qt and sdbus-c++
 * iwd
 
 ## How to compile and install
+## Arch Linux
+Available in the AUR as [iwqt](https://aur.archlinux.org/packages/iwqt) (thanks to matth)
+## Generic
 ```bash
 git clone https://github.com/FinGu/iwqt
 meson build

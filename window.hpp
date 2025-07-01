@@ -41,12 +41,10 @@ class Window : public QDialog {
 
     void createTray();
     void instantiateDevice();
-    QIcon addNetwork(network n);
-    QIcon processConnectedNetwork(network n);
+    void addNetwork(network n);
     void refreshNetworks(bool);
+    void processConnectedNetwork(network n);
     void makeAgent();
-
-    QString strengthToIconPath(network n);
 
     void iwdNotUp();
 

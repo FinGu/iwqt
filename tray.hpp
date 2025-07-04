@@ -1,9 +1,11 @@
-#ifndef WINDOW_H
-#define WINDOW_H
+#ifndef TRAY_HPP
+#define TRAY_HPP
 
 #include "iwd.hpp"
 
 #include "device.hpp"
+
+#include "known_window.hpp"
 
 #include <QSystemTrayIcon>
 
@@ -23,12 +25,11 @@ class QTextEdit;
 class QEventLoop;
 QT_END_NAMESPACE
 
-
-class Window : public QDialog {
+class Tray : public QDialog {
     Q_OBJECT
 
   public:
-    Window(iwd &manager);
+    Tray(iwd &manager);
 
     void setVisible(bool visible) override;
 
@@ -53,15 +54,19 @@ class Window : public QDialog {
 
     void createItems();
     void fillMenu();
+    void createKnownWindow();
 
     QMenu *networksMenu = NULL;
 
     QAction *avoidScans;
     QAction *scanAction;
+    QAction *knownAction;
     QAction *quitAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
+
+    KnownWindow *kwindow;
 };
 
 #endif

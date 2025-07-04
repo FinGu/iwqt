@@ -5,13 +5,18 @@
 #include <sdbus-c++/Types.h>
 #include <string>
 
-class network {
+struct base_network{
+    public:
+      std::string name;
+      std::string type;
+      sdbus::ObjectPath path;
+};
+
+class network: public base_network {
   public:
-    std::string name;
-    std::string type;
     bool connected;
+
     int16_t signal;
-    sdbus::ObjectPath device_path;
 
     enum strength_type {
         WEAK,
@@ -20,6 +25,13 @@ class network {
     };
 
     strength_type strength();
+};
+
+class known_network: public base_network {
+  public:
+    bool hidden;
+    bool autoconnect;
+    std::string last_connected;
 };
 
 #endif

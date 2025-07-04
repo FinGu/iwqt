@@ -1,6 +1,7 @@
 #include "iwd.hpp"
 #include "device.hpp"
 #include "agent.hpp"
+#include <iostream>
 
 #include <map>
 
@@ -71,4 +72,43 @@ std::optional<device> iwd::get_first_device() {
     const auto powered = interface.at("Powered").get<bool>();
 
     return device(this, name, device_path, powered);
+}
+
+void iwd::forget_known_network(const sdbus::ObjectPath &path){
+    auto proxy = sdbus::createProxy(*system_bus,
+                                    service_name,
+                                    path
+                                   );
+
+    auto call = proxy->createMethodCall(sdbus::InterfaceName{iwd_constants::KNOWNNETWORK_IFACE}, sdbus::MethodName{"Forget"});
+
+    proxy->callMethod(call);
+}
+
+
+void iwd::forget_known_network(const known_network &n){
+    return this->forget_known_network(n.path);
+}
+
+std::vector<known_network> iwd::known_networks(){
+    std::vector<known_network> out;
+    managed_objects mobjs = get_objects();
+
+    for(const auto &[objpath, interfaces] : mobjs) {
+        if (interfaces.find(iwd_constants::KNOWNNETWORK_IFACE) == interfaces.end()) {
+            continue;
+
+        }
+
+        const auto &data = interfaces.at(iwd_constants::KNOWNNETWORK_IFACE);
+
+        out.push_back(known_network{
+            {data.at("Name").get<std::string>(), data.at("Type").get<std::string>(), objpath},
+            data.at("Hidden").get<bool>(),
+            data.at("AutoConnect").get<bool>(),
+            data.at("LastConnectedTime").get<std::string>()
+        });
+    }
+
+    return out;
 }

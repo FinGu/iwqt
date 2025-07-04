@@ -1,5 +1,7 @@
 #include "network.hpp"
 
+#include <sdbus-c++/IProxy.h>
+
 network::strength_type network::strength() {
     auto sig = signal / 100;
 

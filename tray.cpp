@@ -1,4 +1,4 @@
-#include "window.hpp"
+#include "tray.hpp"
 
 #include "agent.hpp"
 #include "iwd.hpp"
@@ -34,29 +34,30 @@ constexpr auto WEAK_ICON_PATH = ":/images/bad.png";
 constexpr auto DISCONNECTED_ICON_PATH = ":/images/no.png";
 constexpr auto FAILURE_ICON_PATH = ":/images/x.png";
 
-Window::Window(iwd &in): manager(in) {
+Tray::Tray(iwd &in): manager(in) {
     createTray();
 
     createItems();
     instantiateDevice();
 
     fillMenu();
+    createKnownWindow();
 
     refreshNetworks(true);
 
     makeAgent();
 }
 
-void Window::iwdNotUp() {
+void Tray::iwdNotUp() {
     QMessageBox::warning(this, tr("IWQt"), tr("IWD not running"));
 }
 
-void Window::createTray() {
+void Tray::createTray() {
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setIcon(QIcon(FAILURE_ICON_PATH));
 }
 
-void Window::instantiateDevice() {
+void Tray::instantiateDevice() {
     try {
         this->cur_device = manager.get_first_device().value();
     } catch(...) {
@@ -75,7 +76,7 @@ void Window::instantiateDevice() {
     }
 }
 
-std::string Window::requestPassphrase(const std::string& path) {
+std::string Tray::requestPassphrase(const std::string& path) {
     std::string out;
     bool ok = false;
 
@@ -102,7 +103,7 @@ std::string Window::requestPassphrase(const std::string& path) {
     return out;
 }
 
-std::tuple<std::string,std::string> Window::requestUserAndPassphrase(const std::string& path) {
+std::tuple<std::string,std::string> Tray::requestUserAndPassphrase(const std::string& path) {
     std::string user, pass;
     bool ok;
 
@@ -161,9 +162,7 @@ std::tuple<std::string,std::string> Window::requestUserAndPassphrase(const std::
     return { user, pass };
 }
 
-
-
-void Window::makeAgent() {
+void Tray::makeAgent() {
     agent_ui ui;
 
     ui.request_password = [this](const std::string& path) -> std::string {
@@ -177,7 +176,7 @@ void Window::makeAgent() {
     this->manager.register_agent(std::move(ui));
 }
 
-QIcon Window::addNetwork(network n) {
+QIcon Tray::addNetwork(network n) {
     QIcon icon;
     auto action = networksMenu->addAction(n.name.c_str());
 
@@ -213,7 +212,7 @@ QIcon Window::addNetwork(network n) {
     return icon;
 }
 
-QIcon Window::processConnectedNetwork(network n) {
+QIcon Tray::processConnectedNetwork(network n) {
     auto icon = addNetwork(n);
 
     QAction* disconnectAction = new QAction(tr("&Disconnect"), this);
@@ -231,7 +230,7 @@ QIcon Window::processConnectedNetwork(network n) {
     return icon;
 }
 
-void Window::refreshNetworks(bool should_scan) {
+void Tray::refreshNetworks(bool should_scan) {
     networksMenu->clear();
 
     if(should_scan) {
@@ -264,11 +263,11 @@ void Window::refreshNetworks(bool should_scan) {
     }
 }
 
-void Window::setVisible(bool visible) {
+void Tray::setVisible(bool visible) {
     QDialog::setVisible(false);
 }
 
-void Window::createItems() {
+void Tray::createItems() {
     avoidScans = new QAction(tr("&Avoid scans"), this);
     avoidScans->setCheckable(true);
 
@@ -281,6 +280,12 @@ void Window::createItems() {
         }
     });
 
+    knownAction = new QAction(tr("&Known"), this);
+    connect(knownAction, &QAction::triggered, this, [this]() {
+        kwindow->show();        
+    });
+
+
     scanAction = new QAction(tr("&Scan"), this);
     connect(scanAction, &QAction::triggered, this, [this]() {
         try {
@@ -290,21 +295,26 @@ void Window::createItems() {
         }
     });
 
+
     quitAction = new QAction(tr("&Quit"), this);
     connect(quitAction, &QAction::triggered, this, &QCoreApplication::quit);
 }
 
-void Window::fillMenu() {
+void Tray::fillMenu() {
     trayIconMenu = new QMenu(this);
 
     trayIconMenu->addMenu(networksMenu);
     trayIconMenu->addAction(avoidScans);
+    trayIconMenu->addAction(scanAction);
 
     trayIconMenu->addSeparator();
-    trayIconMenu->addAction(scanAction);
+    trayIconMenu->addAction(knownAction);
     trayIconMenu->addAction(quitAction);
 
     trayIcon->setContextMenu(trayIconMenu);
     trayIcon->show();
 }
 
+void Tray::createKnownWindow(){
+    kwindow = new KnownWindow(manager);
+}

@@ -45,11 +45,9 @@ std::vector<network> device::get_networks() {
         auto data = all_objects[path][iwd_constants::NETWORK_IFACE];
 
         out.push_back(network{
-            .name = data.at("Name").get<std::string>(),
-            .type = data.at("Type").get<std::string>(),
-            .connected = data.at("Connected").get<bool>(),
-            .signal = signal,
-            .device_path = path
+            {data.at("Name").get<std::string>(), data.at("Type").get<std::string>(), path},
+            data.at("Connected").get<bool>(),
+            signal
         });
     }
 
@@ -59,7 +57,7 @@ std::vector<network> device::get_networks() {
 void device::connect(const network &in) {
     auto proxy = sdbus::createProxy(*this->manager->system_bus,
                                     this->manager->service_name,
-                                    in.device_path
+                                    in.path
                                    );
 
     auto callback = [](std::optional<sdbus::Error> e) {};

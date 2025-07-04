@@ -8,7 +8,7 @@
 
 #include "agent.hpp"
 
-#include "window.hpp"
+#include "tray.hpp"
 
 #include <QApplication>
 
@@ -17,9 +17,9 @@ int main(int argc, char **argv) {
 
     QApplication app(argc, argv);
 
-    Window window {wrapper};
+    Tray tray {wrapper};
 
-    window.show();
+    tray.show();
 
     return app.exec();
 }

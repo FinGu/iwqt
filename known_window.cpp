@@ -48,6 +48,13 @@ KnownWindow::KnownWindow(iwd &manager, QWidget *parent): QDialog(parent), manage
     setLayout(layout);
 }
 
+void KnownWindow::keyPressEvent(QKeyEvent *event) {
+    if(event->key() == Qt::Key_Escape){
+        event->ignore();
+        return;
+    }
+}
+
 void KnownWindow::closeEvent(QCloseEvent *event){
     hide();
     event->ignore();

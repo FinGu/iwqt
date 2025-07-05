@@ -1,7 +1,6 @@
 #include "iwd.hpp"
 #include "device.hpp"
 #include "agent.hpp"
-#include <iostream>
 
 #include <map>
 

@@ -29,7 +29,9 @@ KnownWindow::KnownWindow(iwd &manager, QWidget *parent): QDialog(parent), manage
     });
 
     connect(addButton, &QPushButton::clicked, this, [=]{
-        refreshNetworks(); 
+        ManageWindow *win = new ManageWindow(nullptr, this);
+        win->exec();
+        refreshNetworks();
     });
     
     connect(listWidget, &QListWidget::itemEntered, this,
@@ -100,7 +102,8 @@ void KnownWindow::createItems(){
 
             if (chosen == editAct) {
                 ManageWindow *win = new ManageWindow(&data, this);
-                win->show();
+                win->exec();
+                refreshNetworks(); //in case autoconnect is changed
             } else if (chosen == deleteAct) {
                 this->manager.forget_known_network(data);
 

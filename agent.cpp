@@ -3,7 +3,6 @@
 #include "iwd.hpp"
 
 #include <cstdlib>
-#include <iostream>
 #include <sdbus-c++/AdaptorInterfaces.h>
 #include <sdbus-c++/IConnection.h>
 #include <sdbus-c++/Types.h>

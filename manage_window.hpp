@@ -32,19 +32,33 @@ class ManageWindow: public QDialog{
         QLabel *networkLabel = NULL;
         QLabel *typeLabel = NULL;
         QLabel *autoconnectLabel = NULL;
-        QLabel *passwordLabel = NULL;
 
         QLineEdit *networkName = NULL;
         QComboBox *networkTypes = NULL;
         QCheckBox *autoconnectEnabled = NULL;
+
+        QLabel *passwordLabel = NULL;
         QLineEdit *networkPassword = NULL;
 
+        QLabel *eapMethodLabel = NULL;
+        QComboBox *eapMethod = NULL;
+        QLabel *eapIdentityLabel = NULL;
+        QLineEdit *eapIdentity = NULL;
+        QLabel *eapPhase2IdentityLabel = NULL;
+        QLineEdit *eapPhase2Identity = NULL;
+        QLabel *eapPhase2MethodLabel = NULL;
+        QComboBox *eapPhase2Method = NULL;
+
+
+        QPushButton *saveButton = NULL;
+
         QStringList supportedTypes();
+        QStringList supportedEAPMethods();
+        QStringList supportedPhase2Methods();
 
         void setFlags();
         void newWindow();
-        void refreshWindow(bool);
-        void delWindow();
+        void refreshWindow();
         void createItems();
         void fillUpFromNetwork(const known_network *);
 };

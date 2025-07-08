@@ -5,6 +5,8 @@
 
 #include "device.hpp"
 
+#include "utils.hpp"
+
 #include <QWidgetAction>
 #include <QAction>
 #include <QCheckBox>
@@ -48,10 +50,6 @@ Tray::Tray(iwd &in): manager(in) {
     makeAgent();
 }
 
-void Tray::iwdNotUp() {
-    QMessageBox::warning(this, tr("IWQt"), tr("IWD not running"));
-}
-
 void Tray::createTray() {
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setIcon(QIcon(FAILURE_ICON_PATH));
@@ -63,7 +61,7 @@ void Tray::instantiateDevice() {
     } catch(...) {
         trayIcon->show();
 
-        iwdNotUp();
+        Utils::iwdNotUp(this);
 
         for(;;) {
             try {
@@ -276,7 +274,7 @@ void Tray::createItems() {
         try {
             this->refreshNetworks(!avoidScans->isChecked());
         } catch(...) {
-            iwdNotUp();
+            instantiateDevice(); //try to recover
         }
     });
 
@@ -291,7 +289,7 @@ void Tray::createItems() {
         try {
             this->refreshNetworks(true);
         } catch(...) {
-            iwdNotUp();
+            instantiateDevice();
         }
     });
 
@@ -316,5 +314,5 @@ void Tray::fillMenu() {
 }
 
 void Tray::createKnownWindow(){
-    kwindow = new KnownWindow(manager);
+    kwindow = new KnownWindow(manager, this);
 }

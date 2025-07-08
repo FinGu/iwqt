@@ -17,7 +17,8 @@ sources = [
   'device.cpp',
   'agent.cpp',
   'network.cpp',
-  'file.cpp'
+  'file.cpp',
+  'utils.cpp'
 ]
 
 #lang_cpp = qt6.compile_translations(qresource: 'lang.qrc')

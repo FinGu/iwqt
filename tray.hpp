@@ -47,8 +47,6 @@ class Tray : public QDialog {
     void refreshNetworks(bool);
     void makeAgent();
 
-    void iwdNotUp();
-
     std::string requestPassphrase(const std::string& path);
     std::tuple<std::string,std::string> requestUserAndPassphrase(const std::string& path);
 

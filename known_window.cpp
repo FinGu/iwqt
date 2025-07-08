@@ -25,7 +25,11 @@ KnownWindow::KnownWindow(iwd &manager, QWidget *parent): QDialog(parent), manage
     refreshNetworks();
 
     connect(refreshButton, &QPushButton::clicked, this, [=]{
-        refreshNetworks(); 
+        try{
+            refreshNetworks(); 
+        } catch(...){
+            //we might as well just ignore, handle it in the tray
+        }
     });
 
     connect(addButton, &QPushButton::clicked, this, [=]{

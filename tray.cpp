@@ -30,7 +30,6 @@
 
 #include <cstdio>
 #include <unistd.h>
-#include <iostream>
 
 constexpr auto STRONG_ICON_PATH = ":/images/good.png";
 constexpr auto MODERATE_ICON_PATH = ":/images/mid.png";
@@ -245,9 +244,17 @@ QIcon Tray::processConnectedNetwork(network n) {
 
     QAction* disconnectAction = new QAction(tr("&Disconnect"), this);
 
-    connect(disconnectAction, &QAction::triggered, this, [this] {
+    connect(disconnectAction, &QAction::triggered, this, [this, n] {
         this->cur_device.disconnect();
+
         trayIcon->setIcon(QIcon(DISCONNECTED_ICON_PATH));
+
+        trayIcon->showMessage(
+            tr("Disconnected from %1").arg(n.name),
+            "",
+            QSystemTrayIcon::Information,
+            3000
+        );
     });
 
     networksMenu->addAction(disconnectAction);

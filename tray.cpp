@@ -26,9 +26,11 @@
 #include <QWidget>
 #include <QInputDialog>
 #include <QThread>
+#include <QToolTip>
 
 #include <cstdio>
 #include <unistd.h>
+#include <iostream>
 
 constexpr auto STRONG_ICON_PATH = ":/images/good.png";
 constexpr auto MODERATE_ICON_PATH = ":/images/mid.png";
@@ -174,6 +176,32 @@ void Tray::makeAgent() {
     this->manager.register_agent(std::move(ui));
 }
 
+void Tray::connectedHandler(network n, QIcon icon){
+    auto connected = this->cur_device.get_connected_network().has_value();
+
+    if(connected){
+        QMetaObject::invokeMethod(this, [this, n, icon](){
+            trayIcon->setIcon(icon);
+
+            trayIcon->showMessage(
+                tr("Connected to %1").arg(n.name),
+                tr("Type: %1").arg(n.type),
+                QSystemTrayIcon::Information,
+                3000
+            );
+
+        }, Qt::QueuedConnection);
+        return;
+    }
+
+    if(n.type == "8021x"){
+        QMetaObject::invokeMethod(this, [this]() {
+            QMessageBox::warning(this, QObject::tr("IWQt"), QObject::tr("Something is wrong with the 8021x network configuration. These types of network need to be configured through the Known Networks menu."));
+            }, Qt::QueuedConnection
+        );
+    }
+}
+
 QIcon Tray::addNetwork(network n) {
     QIcon icon;
     auto action = networksMenu->addAction(n.name.c_str());
@@ -203,8 +231,10 @@ QIcon Tray::addNetwork(network n) {
     }
 
     connect(action, &QAction::triggered, this, [=] {
-        this->cur_device.connect(n);
-        trayIcon->setIcon(icon);
+        saved_proxy = this->cur_device.connect(n, [=](std::optional<sdbus::Error> e){
+            connectedHandler(n, icon); 
+        });
+        //needs to be saved so the callback is invoked later on
     });
 
     return icon;
@@ -282,7 +312,6 @@ void Tray::createItems() {
     connect(knownAction, &QAction::triggered, this, [this]() {
         kwindow->show();        
     });
-
 
     scanAction = new QAction(tr("&Scan"), this);
     connect(scanAction, &QAction::triggered, this, [this]() {

@@ -5,6 +5,8 @@
 #include "network.hpp"
 
 #include <iostream>
+#include <optional>
+#include <sdbus-c++/Types.h>
 
 void device::scan() {
     auto proxy = sdbus::createProxy(*this->manager->system_bus,
@@ -54,18 +56,25 @@ std::vector<network> device::get_networks() {
     return out;
 }
 
-void device::connect(const network &in) {
+std::unique_ptr<sdbus::IProxy> device::connect(const network &in, std::function<void(std::optional<sdbus::Error>)> f) {
     auto proxy = sdbus::createProxy(*this->manager->system_bus,
                                     this->manager->service_name,
                                     in.path
                                    );
 
-    auto callback = [](std::optional<sdbus::Error> e) {};
-
     proxy->callMethodAsync(sdbus::MethodName{"Connect"})
     .onInterface(sdbus::InterfaceName{iwd_constants::NETWORK_IFACE})
-    .uponReplyInvoke(callback);
+    .uponReplyInvoke(f);
     // we can't have this blocking or else we won't be able to show a dialog
+
+    return proxy;
+}
+
+
+void device::connect(const network &in) {
+    auto callback = [](std::optional<sdbus::Error> e) {};
+
+    this->connect(in, callback);
 }
 
 void device::disconnect() {
@@ -78,3 +87,17 @@ void device::disconnect() {
 
     proxy->callMethod(call);
 }
+
+std::optional<sdbus::ObjectPath> device::get_connected_network(){
+    auto proxy = sdbus::createProxy(*this->manager->system_bus,
+                                    this->manager->service_name,
+                                    this->path
+                                   );
+    try{
+        auto prop = proxy->getProperty("ConnectedNetwork").onInterface(iwd_constants::STATION_IFACE);
+        return prop.get<sdbus::ObjectPath>();
+    } catch(...){
+        return std::nullopt;
+    }
+}
+

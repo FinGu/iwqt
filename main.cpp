@@ -1,7 +1,3 @@
-#include <sdbus-c++/IConnection.h>
-#include <sdbus-c++/Types.h>
-#include <sys/wait.h>
-
 #include "iwd.hpp"
 
 #include "device.hpp"

@@ -26,7 +26,10 @@ class device {
 
     void scan();
     void connect(const network&);
+    std::unique_ptr<sdbus::IProxy> connect(const network&, std::function<void(std::optional<sdbus::Error>)>);
     void disconnect();
+
+    std::optional<sdbus::ObjectPath> get_connected_network();
 
     std::vector<network> get_networks();
 };

@@ -10,6 +10,7 @@
 #include <QSystemTrayIcon>
 
 #include <QDialog>
+#include <sdbus-c++/IProxy.h>
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -54,6 +55,9 @@ class Tray : public QDialog {
     void fillMenu();
     void createKnownWindow();
 
+    void connectedHandler(network n, QIcon icon);
+
+    std::unique_ptr<sdbus::IProxy> saved_proxy;
     QMenu *networksMenu = NULL;
 
     QAction *avoidScans;

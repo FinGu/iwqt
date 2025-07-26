@@ -185,11 +185,14 @@ QMenu *KnownWindow::createSortItems(){
 
 void KnownWindow::createItems(){
     sortButton = new QToolButton(this);
-    sortButton->setFixedSize(20, 20);
+
+    sortButton->setFixedSize(15, 15);
+    sortButton->setIconSize(QSize(15, 15));
+    sortButton->setStyleSheet(QString{"QToolButton {border: 0px; margin-top: -3px;} QToolButton::menu-indicator { image: none; }"});
+
     sortButton->setPopupMode(QToolButton::InstantPopup);
 
     sortButton->setIcon(QIcon(SORT_ICON_PATH));
-
     sortButton->setMenu(createSortItems());
 
     listWidget = new QListWidget(this);

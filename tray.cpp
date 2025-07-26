@@ -46,6 +46,8 @@ Tray::Tray(iwd &in): manager(in) {
     fillMenu();
     createKnownWindow();
 
+    connect(trayIcon, &QSystemTrayIcon::activated, this, &Tray::iconActivated);
+
     refreshNetworks(true);
 
     makeAgent();
@@ -54,6 +56,21 @@ Tray::Tray(iwd &in): manager(in) {
 void Tray::createTray() {
     trayIcon = new QSystemTrayIcon(this);
     trayIcon->setIcon(QIcon(FAILURE_ICON_PATH));
+}
+
+void Tray::iconActivated(QSystemTrayIcon::ActivationReason reason){
+    switch (reason) {
+    case QSystemTrayIcon::Trigger:
+    case QSystemTrayIcon::DoubleClick:
+        if(kwindow->isVisible()){
+            kwindow->hide();
+        } else{
+            kwindow->show();
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 void Tray::instantiateDevice() {
@@ -336,6 +353,7 @@ void Tray::createItems() {
 
 void Tray::fillMenu() {
     trayIconMenu = new QMenu(this);
+
 
     trayIconMenu->addMenu(networksMenu);
     trayIconMenu->addAction(avoidScans);

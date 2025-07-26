@@ -35,6 +35,7 @@ class Tray : public QDialog {
     void setVisible(bool visible) override;
 
   private slots:
+    void iconActivated(QSystemTrayIcon::ActivationReason reason);
 
   private:
     iwd &manager;
@@ -44,6 +45,7 @@ class Tray : public QDialog {
     void createTray();
     void instantiateDevice();
     QIcon addNetwork(network n);
+
     QIcon processConnectedNetwork(network n);
     void refreshNetworks(bool);
     void makeAgent();

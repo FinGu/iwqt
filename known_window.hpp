@@ -7,6 +7,7 @@
 #include "manage_window.hpp"
 
 #include <QDialog>
+#include <QSettings>
 
 QT_BEGIN_NAMESPACE
 class QListWidget;
@@ -14,9 +15,16 @@ class QVBoxLayout;
 class QHBoxLayout;
 class QPushButton;
 class QCloseEvent;
+class QToolButton;
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(known_network);
+
+enum SortType{
+    ByName = 0,
+    ByLast, 
+    ByType
+};
 
 class KnownWindow: public QDialog{
     Q_OBJECT
@@ -31,8 +39,11 @@ class KnownWindow: public QDialog{
     private:
         iwd &manager;
 
+        QToolButton *sortButton;
+
         QListWidget *listWidget;
         QVBoxLayout *layout;         
+
         QPushButton *refreshButton;
         QPushButton *addButton;
 
@@ -40,7 +51,12 @@ class KnownWindow: public QDialog{
 
         void setFlags();
         void createItems();
+        QMenu *createSortItems();
         void refreshNetworks();
+        void sortNetworks(std::vector<known_network>&);
+
+        SortType currentSortMethod = SortType::ByName;
+        QSettings settings;
 };
 
 #endif

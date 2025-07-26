@@ -11,6 +11,7 @@
 int main(int argc, char **argv) {
     auto wrapper = iwd();
 
+    QApplication::setApplicationName("IWQt");
     QApplication app(argc, argv);
 
     Tray tray {wrapper};

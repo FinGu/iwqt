@@ -31,12 +31,6 @@
 #include <cstdio>
 #include <unistd.h>
 
-constexpr auto STRONG_ICON_PATH = ":/images/good.png";
-constexpr auto MODERATE_ICON_PATH = ":/images/mid.png";
-constexpr auto WEAK_ICON_PATH = ":/images/bad.png";
-constexpr auto DISCONNECTED_ICON_PATH = ":/images/no.png";
-constexpr auto FAILURE_ICON_PATH = ":/images/x.png";
-
 Tray::Tray(iwd &in): manager(in) {
     createTray();
 
@@ -211,10 +205,9 @@ void Tray::connectedHandler(network n, QIcon icon){
     }
 
     if(n.type == "8021x"){
-        QMetaObject::invokeMethod(this, [this]() {
-            QMessageBox::warning(this, QObject::tr("IWQt"), QObject::tr("Something is wrong with the 8021x network configuration. These types of network need to be configured through the Known Networks menu."));
-            }, Qt::QueuedConnection
-        );
+        QMetaObject::invokeMethod(this, [=]() {
+            Utils::networkConfigure(n.type, this);
+        });
     }
 }
 
@@ -323,6 +316,14 @@ void Tray::createItems() {
     avoidScans = new QAction(tr("&Avoid scans"), this);
     avoidScans->setCheckable(true);
 
+    if(settings.value(AVOID_SCANS_SETTING, false).toBool()){
+        avoidScans->setChecked(true);
+    }
+
+    connect(avoidScans, &QAction::triggered, this, [this]{
+        settings.setValue(AVOID_SCANS_SETTING, avoidScans->isChecked());
+    });
+
     networksMenu = new QMenu(tr("&Networks"), this);
     connect(networksMenu, &QMenu::aboutToShow, this, [this] {
         try {
@@ -353,7 +354,6 @@ void Tray::createItems() {
 
 void Tray::fillMenu() {
     trayIconMenu = new QMenu(this);
-
 
     trayIconMenu->addMenu(networksMenu);
     trayIconMenu->addAction(avoidScans);

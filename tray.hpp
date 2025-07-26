@@ -71,6 +71,8 @@ class Tray : public QDialog {
     QMenu *trayIconMenu;
 
     KnownWindow *kwindow;
+
+    QSettings settings;
 };
 
 #endif

@@ -19,9 +19,11 @@ class network: public base_network {
     int16_t signal;
 
     enum strength_type {
+        EXCELLENT,
+        GOOD,
+        FAIR,
         WEAK,
-        MODERATE,
-        STRONG
+        POOR
     };
 
     strength_type strength();

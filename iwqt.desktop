@@ -4,4 +4,4 @@ Version=0.0.1
 Name=IWQt
 Comment=An iwd network applet for linux systems
 Exec=/usr/local/bin/iwqt
-Icon=/usr/local/share/iwqt/icon.png
+Icon=/usr/local/share/iwqt/icon.svg

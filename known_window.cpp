@@ -27,6 +27,8 @@ enum KnownRoles{
 };
 
 KnownWindow::KnownWindow(iwd &manager, QWidget *parent): QDialog(parent), manager(manager){
+    setWindowIcon(QPixmap(EXCELLENT_ICON_PATH));
+
     setFlags();
 
     createItems();
@@ -188,11 +190,12 @@ void KnownWindow::createItems(){
 
     sortButton->setFixedSize(15, 15);
     sortButton->setIconSize(QSize(15, 15));
+    sortButton->setIcon(QIcon(SORT_ICON_PATH));
+
     sortButton->setStyleSheet(QString{"QToolButton {border: 0px; margin-top: -3px;} QToolButton::menu-indicator { image: none; }"});
 
     sortButton->setPopupMode(QToolButton::InstantPopup);
 
-    sortButton->setIcon(QIcon(SORT_ICON_PATH));
     sortButton->setMenu(createSortItems());
 
     listWidget = new QListWidget(this);

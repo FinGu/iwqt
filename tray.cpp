@@ -186,7 +186,7 @@ void Tray::makeAgent() {
     this->manager.register_agent(std::move(ui));
 }
 
-void Tray::connectedHandler(network n, QIcon icon){
+void Tray::connectedHandler(network n, QPixmap icon){
     auto connected = this->cur_device.get_connected_network().has_value();
 
     if(connected){
@@ -211,21 +211,32 @@ void Tray::connectedHandler(network n, QIcon icon){
     }
 }
 
-QIcon Tray::addNetwork(network n) {
-    QIcon icon;
+QPixmap Tray::getIconForStrength(network::strength_type st){
+    QPixmap icon;
+    switch (st) {
+        case network::strength_type::EXCELLENT:
+            icon = QPixmap(EXCELLENT_ICON_PATH).scaled(TRAY_ICON_SCALE);
+            break;
+        case network::strength_type::GOOD:
+            icon = QPixmap(GOOD_ICON_PATH).scaled(TRAY_ICON_SCALE);
+            break;
+        case network::strength_type::FAIR:
+            icon = QPixmap(FAIR_ICON_PATH).scaled(TRAY_ICON_SCALE);
+            break;
+        case network::strength_type::WEAK:
+            icon = QPixmap(WEAK_ICON_PATH).scaled(TRAY_ICON_SCALE);
+            break;
+        case network::strength_type::POOR:
+            icon = QPixmap(POOR_ICON_PATH).scaled(TRAY_ICON_SCALE);
+            break;
+    }
+    return icon;
+}
+
+QPixmap Tray::addNetwork(network n) {
     auto action = networksMenu->addAction(n.name.c_str());
 
-    switch(n.strength()) {
-    case network::strength_type::WEAK:
-        icon = QIcon(WEAK_ICON_PATH);
-        break;
-    case network::strength_type::MODERATE:
-        icon = QIcon(MODERATE_ICON_PATH);
-        break;
-    case network::strength_type::STRONG:
-        icon = QIcon(STRONG_ICON_PATH);
-        break;
-    }
+    QPixmap icon = getIconForStrength(n.strength());
 
     action->setIcon(icon);
 
@@ -249,7 +260,7 @@ QIcon Tray::addNetwork(network n) {
     return icon;
 }
 
-QIcon Tray::processConnectedNetwork(network n) {
+QPixmap Tray::processConnectedNetwork(network n) {
     auto icon = addNetwork(n);
 
     QAction* disconnectAction = new QAction(tr("&Disconnect"), this);
@@ -257,7 +268,7 @@ QIcon Tray::processConnectedNetwork(network n) {
     connect(disconnectAction, &QAction::triggered, this, [this, n] {
         this->cur_device.disconnect();
 
-        trayIcon->setIcon(QIcon(DISCONNECTED_ICON_PATH));
+        trayIcon->setIcon(QPixmap(DISCONNECTED_ICON_PATH).scaled(TRAY_ICON_SCALE));
 
         trayIcon->showMessage(
             tr("Disconnected from %1").arg(n.name),
@@ -283,6 +294,11 @@ void Tray::refreshNetworks(bool should_scan) {
     }
 
     auto inetworks = this->cur_device.get_networks();
+
+    std::sort(inetworks.begin(), inetworks.end(), [](network &a, network &b){
+        return a.signal > b.signal;
+    });
+
     auto size = inetworks.size();
 
     for(size_t i = 0; i < size; ++i) {

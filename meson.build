@@ -1,10 +1,8 @@
-project('iwqt', 'cpp', default_options:[
-    'buildtype=debugoptimized'
-])
+project('iwqt', 'cpp', default_options:[])
 
 qt6 = import('qt6')
 
-qt6_dep = dependency('qt6', modules: ['Core', 'Gui', 'Widgets'])
+qt6_dep = dependency('qt6', modules: ['Core', 'Gui', 'Widgets', 'Svg'])
 
 dbus_dep = dependency('sdbus-c++')
 
@@ -30,5 +28,5 @@ preprocessed = qt6.preprocess(
 
 executable('iwqt', sources + preprocessed, dependencies: [qt6_dep, dbus_dep], install: true, install_dir: get_option('bindir'))
 
-install_data('images/good.png', rename: 'icon.png', install_dir: get_option('datadir') / 'iwqt')
+install_data('images/wireless-4.svg', rename: 'icon.svg', install_dir: get_option('datadir') / 'iwqt')
 install_data('iwqt.desktop', install_dir: get_option('datadir') / 'applications')

@@ -44,9 +44,9 @@ class Tray : public QDialog {
 
     void createTray();
     void instantiateDevice();
-    QIcon addNetwork(network n);
+    QPixmap addNetwork(network n);
 
-    QIcon processConnectedNetwork(network n);
+    QPixmap processConnectedNetwork(network n);
     void refreshNetworks(bool);
     void makeAgent();
 
@@ -57,7 +57,9 @@ class Tray : public QDialog {
     void fillMenu();
     void createKnownWindow();
 
-    void connectedHandler(network n, QIcon icon);
+    void connectedHandler(network n, QPixmap icon);
+
+    QPixmap getIconForStrength(network::strength_type st);
 
     std::unique_ptr<sdbus::IProxy> saved_proxy;
     QMenu *networksMenu = NULL;

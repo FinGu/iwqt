@@ -1,10 +1,12 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource prefix="/">
-   <file>images/good.png</file>
-   <file>images/mid.png</file>
-   <file>images/bad.png</file>
-   <file>images/no.png</file>
-   <file>images/x.png</file>
+   <file>images/wireless-0.svg</file>
+   <file>images/wireless-1.svg</file>
+   <file>images/wireless-2.svg</file>
+   <file>images/wireless-3.svg</file>
+   <file>images/wireless-4.svg</file>
+   <file>images/wireless-disabled.svg</file>
+   <file>images/wireless-none.svg</file>
    <file>images/sort.png</file>
 </qresource>
 </RCC>

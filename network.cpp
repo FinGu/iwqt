@@ -4,14 +4,22 @@
 
 network::strength_type network::strength() {
     auto sig = signal / 100;
-
-    if (sig >= -60) {
-        return network::strength_type::STRONG;
+    
+    if(sig >= -50){
+        return strength_type::EXCELLENT;
     }
 
-    if (sig >= -80) {
-        return network::strength_type::MODERATE;
+    if(sig >= -60){
+        return strength_type::GOOD;
     }
 
-    return network::strength_type::WEAK;
+    if(sig >= -70){
+        return strength_type::FAIR;
+    }
+
+    if(sig >= -80){
+        return strength_type::WEAK;
+    }
+
+    return strength_type::POOR;
 }

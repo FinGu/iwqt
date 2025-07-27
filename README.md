@@ -23,6 +23,6 @@ Pull requests are fully welcome.
 Feel free to make any changes you may see necessary.
 
 ## Images
-![Image](https://github.com/user-attachments/assets/c2a0d50c-46bf-4272-8f35-58a578a6c9b0)
-![Image](https://github.com/user-attachments/assets/0aac9d45-3663-404f-b761-cba36f1ac6d0)
-![Image](https://github.com/user-attachments/assets/3cdc0915-9f0f-4acf-bfef-1cc9b15664d6)
+![Image](https://github.com/user-attachments/assets/1fb0ba1e-d860-4b0c-913c-076018ca911f)
+![Image](https://github.com/user-attachments/assets/ec84dc56-2b37-413a-b5fe-454723b65578)
+![Image](https://github.com/user-attachments/assets/4181b090-fc5c-4067-98ef-5b813c9fba3d)

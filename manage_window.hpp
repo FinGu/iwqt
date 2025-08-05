@@ -1,5 +1,5 @@
-#ifndef KWINDOW_HPP
-#define KWINDOW_HPP
+#ifndef MWINDOW_HPP
+#define MWINDOW_HPP
 
 #include "iwd.hpp"
 #include "network.hpp"

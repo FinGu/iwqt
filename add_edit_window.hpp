@@ -1,5 +1,5 @@
-#ifndef MWINDOW_HPP
-#define MWINDOW_HPP
+#ifndef AEWINDOW_HPP
+#define AEWINDOW_HPP
 
 #include "iwd.hpp"
 

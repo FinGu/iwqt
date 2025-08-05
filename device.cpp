@@ -100,4 +100,3 @@ std::optional<sdbus::ObjectPath> device::get_connected_network(){
         return std::nullopt;
     }
 }
-

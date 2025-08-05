@@ -2,7 +2,7 @@
 
 #include "device.hpp"
 
-#include "agent.hpp"
+#include "adapter.hpp"
 
 #include "tray.hpp"
 

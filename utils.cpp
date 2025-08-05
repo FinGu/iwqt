@@ -5,8 +5,12 @@
 #include <QCoreApplication>
 
 namespace Utils{
-    void iwdNotUp(QWidget *parent) {
-        QMessageBox::warning(parent, QCoreApplication::applicationName(), QObject::tr("IWD not running"));
+    void adapterNotFound(QWidget *parent) {
+        QMessageBox::critical(parent, QCoreApplication::applicationName(), QObject::tr("No adapters available!"));
+    }
+
+    void deviceNotFound(QWidget *parent) {
+        QMessageBox::warning(parent, QCoreApplication::applicationName(), QObject::tr("Couldn't get an available device"));
     }
 
     void networkConfigure(const std::string &type, QWidget *parent){

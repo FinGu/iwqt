@@ -9,9 +9,10 @@ dbus_dep = dependency('sdbus-c++')
 sources = [
   'main.cpp',
   'tray.cpp',
-  'known_window.cpp',
+  'add_edit_window.cpp',
   'manage_window.cpp',
   'iwd.cpp',
+  'adapter.cpp',
   'device.cpp',
   'agent.cpp',
   'network.cpp',
@@ -22,7 +23,7 @@ sources = [
 #lang_cpp = qt6.compile_translations(qresource: 'lang.qrc')
 
 preprocessed = qt6.preprocess(
-  moc_headers: ['tray.hpp', 'known_window.hpp', 'manage_window.hpp'], 
+  moc_headers: ['tray.hpp', 'add_edit_window.hpp', 'manage_window.hpp'], 
   qresources: ['systray.qrc']
 )
 

@@ -1,7 +1,10 @@
 #include <QWidget>
 
 namespace Utils{
-    void iwdNotUp(QWidget *parent = nullptr);
+    void adapterNotFound(QWidget *parent = nullptr);
+
+    void deviceNotFound(QWidget *parent = nullptr);
+ 
     void networkConfigure(const std::string &type, QWidget *parent = nullptr);
 }
 

@@ -24,14 +24,14 @@ inline constexpr auto AGENTMANAGER_IFACE = "net.connman.iwd.AgentManager";
 inline constexpr auto KNOWNNETWORK_IFACE = "net.connman.iwd.KnownNetwork";
 }
 
-class device;
+class adapter;
 class known_network;
 
 class iwd {
   public:
     iwd();
 
-    std::optional<device> get_first_device();
+    std::optional<adapter> get_first_adapter();
 
     std::unique_ptr<sdbus::IConnection> system_bus;
     sdbus::ServiceName service_name;

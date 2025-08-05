@@ -1,8 +1,10 @@
 #include "iwd.hpp"
+#include "adapter.hpp"
 #include "device.hpp"
 #include "agent.hpp"
 
 #include <map>
+#include <optional>
 
 iwd::iwd() {
     this->system_bus = sdbus::createSystemBusConnection();
@@ -37,7 +39,7 @@ managed_objects iwd::get_objects() {
     return mobjs;
 }
 
-std::optional<device> iwd::get_first_device() {
+std::optional<adapter> iwd::get_first_adapter(){
     managed_objects mobjs = get_objects();
     sdbus::ObjectPath adapter_path;
 
@@ -49,28 +51,11 @@ std::optional<device> iwd::get_first_device() {
         adapter_path = objpath;
     }
 
-    sdbus::ObjectPath device_path;
-
-    for(const auto &[path, _]: mobjs) {
-        if(path.find(adapter_path) == 0 && path != adapter_path) {
-            device_path = path;
-            break;
-        }
-    }
-
-    const auto& interfaces = mobjs.at(device_path);
-
-    if(interfaces.find(iwd_constants::DEVICE_IFACE) == interfaces.end()) {
+    if(adapter_path.empty()){
         return std::nullopt;
     }
 
-    const auto interface = interfaces.at(iwd_constants::DEVICE_IFACE);
-
-    const auto name = interface.at("Name").get<std::string>();
-
-    const auto powered = interface.at("Powered").get<bool>();
-
-    return device(this, name, device_path, powered);
+    return adapter(this, adapter_path);
 }
 
 void iwd::forget_known_network(const sdbus::ObjectPath &path){

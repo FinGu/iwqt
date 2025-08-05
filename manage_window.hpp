@@ -1,9 +1,13 @@
-#ifndef MWINDOW_HPP
-#define MWINDOW_HPP
+#ifndef KWINDOW_HPP
+#define KWINDOW_HPP
 
 #include "iwd.hpp"
+#include "network.hpp"
+
+#include "add_edit_window.hpp"
 
 #include <QDialog>
+#include <QSettings>
 
 QT_BEGIN_NAMESPACE
 class QListWidget;
@@ -11,56 +15,50 @@ class QVBoxLayout;
 class QHBoxLayout;
 class QPushButton;
 class QCloseEvent;
-class QLineEdit;
-class QComboBox;
-class QCheckBox;
-class QLabel;
+class QToolButton;
+class QCheckbox;
 QT_END_NAMESPACE
+
+Q_DECLARE_METATYPE(known_network);
+
+enum SortType{
+    ByName = 0,
+    ByLast, 
+    ByType
+};
 
 class ManageWindow: public QDialog{
     Q_OBJECT
 
     public:
-        ManageWindow(const known_network *n = nullptr, QWidget *parent = nullptr);
+        ManageWindow(iwd &manager, QWidget *parent = nullptr);
         
     protected:
-        //void closeEvent(QCloseEvent *event) override;
+        void keyPressEvent(QKeyEvent *event) override;
+        void closeEvent(QCloseEvent *event) override;
 
     private:
+        iwd &manager;
+
+        QToolButton *sortButton;
+
+        QListWidget *listWidget;
         QVBoxLayout *layout;         
 
-        QLabel *networkLabel = NULL;
-        QLabel *typeLabel = NULL;
-        QLabel *autoconnectLabel = NULL;
+        QPushButton *refreshButton;
+        QPushButton *addButton;
+        QCheckBox *avoidScansCheckbox;
 
-        QLineEdit *networkName = NULL;
-        QComboBox *networkTypes = NULL;
-        QCheckBox *autoconnectEnabled = NULL;
-
-        QLabel *passwordLabel = NULL;
-        QLineEdit *networkPassword = NULL;
-
-        QLabel *eapMethodLabel = NULL;
-        QComboBox *eapMethod = NULL;
-        QLabel *eapIdentityLabel = NULL;
-        QLineEdit *eapIdentity = NULL;
-        QLabel *eapPhase2IdentityLabel = NULL;
-        QLineEdit *eapPhase2Identity = NULL;
-        QLabel *eapPhase2MethodLabel = NULL;
-        QComboBox *eapPhase2Method = NULL;
-
-
-        QPushButton *saveButton = NULL;
-
-        QStringList supportedTypes();
-        QStringList supportedEAPMethods();
-        QStringList supportedPhase2Methods();
+        ManageWindow *mwindow;
 
         void setFlags();
-        void newWindow();
-        void refreshWindow();
         void createItems();
-        void fillUpFromNetwork(const known_network *);
+        QMenu *createSortItems();
+        void refreshNetworks();
+        void sortNetworks(std::vector<known_network>&);
+
+        SortType currentSortMethod = SortType::ByName;
+        QSettings settings;
 };
 
 #endif

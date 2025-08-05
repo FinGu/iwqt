@@ -1,232 +1,276 @@
 #include "manage_window.hpp"
 
+#include "add_edit_window.hpp"
 #include "network.hpp"
 
-#include "file.hpp"
+#include "utils.hpp"
 
-#include <QCheckBox>
-#include <QComboBox>
+#include <QWidget>
 #include <QVBoxLayout>
-#include <QLineEdit>
-#include <QLabel>
+#include <QListWidget>
 #include <QPushButton>
+#include <QToolTip>
+#include <QMenu>
+#include <QCloseEvent>
+#include <QToolButton>
+#include <QActionGroup>
+#include <QDateTime>
+#include <QSettings>
+#include <QCheckBox>
 
-#include <cstdlib>
-#include <iostream>
+#include <cctype>
+#include <sdbus-c++/Types.h>
 
-#define REMOVE_WIDGET(widget) if(widget){ layout->removeWidget(widget); delete widget; widget = NULL; } 
+constexpr auto SORT_ICON_PATH = ":/images/sort.png";
 
-QStringList ManageWindow::supportedTypes(){
-    return (QStringList() << "open" << "psk" << "8021x");
-}
+enum KnownRoles{
+    Show = Qt::UserRole, 
+    Manage
+};
 
-QStringList ManageWindow::supportedEAPMethods(){
-    return (QStringList() << "MSCHAPV2" << "PEAP" << "PWD" << "TLS" << "TTLS");
-}
+ManageWindow::ManageWindow(iwd &manager, QWidget *parent): QDialog(parent), manager(manager){
+    setWindowIcon(QPixmap(EXCELLENT_ICON_PATH));
 
-QStringList ManageWindow::supportedPhase2Methods(){
-    return (QStringList() << "MSCHAPV2" << "PEAP" << "PWD" << "TLS" << "TTLS");
-}
+    setFlags();
 
-void ManageWindow::newWindow(){
-    networkName = new QLineEdit(this);    
-    networkTypes = new QComboBox(this);
+    createItems();
 
-    networkTypes->addItems(supportedTypes());
+    refreshNetworks();
 
-    autoconnectEnabled = new QCheckBox(this);
-
-    networkLabel = new QLabel("Network", this);
-    typeLabel = new QLabel("Type", this);
-    autoconnectLabel = new QLabel("Autoconnect", this);
-    
-    saveButton = new QPushButton("Save", this);
-}
-
-void ManageWindow::refreshWindow(){
-    layout->addWidget(networkLabel);
-    layout->addWidget(networkName);
-
-    layout->addWidget(typeLabel);
-    layout->addWidget(networkTypes);
-
-    switch(networkTypes->currentIndex()){
-        case network_type::PSK:
-            setMaximumHeight(200);
-            REMOVE_WIDGET(passwordLabel);
-            REMOVE_WIDGET(networkPassword);
-
-            passwordLabel = new QLabel("Password", this);
-            networkPassword = new QLineEdit(this);
-
-            layout->addWidget(passwordLabel);
-            layout->addWidget(networkPassword);
-            break;
-        case network_type::_8021x: 
-            setMaximumHeight(300);
-            REMOVE_WIDGET(passwordLabel);
-            REMOVE_WIDGET(networkPassword);
-
-            eapMethodLabel = new QLabel("EAP Method", this);
-            eapMethod = new QComboBox(this);
-            eapMethod->addItems(supportedEAPMethods());
-
-            layout->addWidget(eapMethodLabel);
-            layout->addWidget(eapMethod);
-
-            eapIdentityLabel = new QLabel("EAP Identity", this);
-            eapIdentity = new QLineEdit(this);
-            layout->addWidget(eapIdentityLabel);
-            layout->addWidget(eapIdentity);
-
-            eapPhase2MethodLabel = new QLabel("EAP Phase 2 Method", this);
-            eapPhase2Method = new QComboBox(this);
-            eapPhase2Method->addItems(supportedPhase2Methods());
-
-            layout->addWidget(eapPhase2MethodLabel);
-            layout->addWidget(eapPhase2Method);
-
-            eapPhase2IdentityLabel = new QLabel("EAP Phase 2 Identity", this);
-            eapPhase2Identity = new QLineEdit(this);
-
-            layout->addWidget(eapPhase2IdentityLabel);
-            layout->addWidget(eapPhase2Identity);
-
-            passwordLabel = new QLabel("EAP Phase 2 Password", this);
-            networkPassword = new QLineEdit(this);
-
-            layout->addWidget(passwordLabel);
-            layout->addWidget(networkPassword);
-
-            break;
-        default:
-            setMaximumHeight(100);
-            REMOVE_WIDGET(passwordLabel);
-            REMOVE_WIDGET(networkPassword);
-            REMOVE_WIDGET(eapMethodLabel);
-            REMOVE_WIDGET(eapMethod);
-            REMOVE_WIDGET(eapIdentityLabel);
-            REMOVE_WIDGET(eapIdentity);
-            REMOVE_WIDGET(eapPhase2MethodLabel);
-            REMOVE_WIDGET(eapPhase2Method);
-            REMOVE_WIDGET(eapPhase2IdentityLabel);
-            REMOVE_WIDGET(eapPhase2Identity);
-
-            break;
-    }
-    
-    layout->addWidget(autoconnectLabel);
-    layout->addWidget(autoconnectEnabled);
-
-    layout->addWidget(saveButton, 0, Qt::AlignRight);
-}
-
-ManageWindow::ManageWindow(const known_network *n, QWidget *parent): QDialog(parent){
-    setMinimumWidth(300);
-
-    layout = new QVBoxLayout(this);
-
-    newWindow();
-
-    if(n){
-        fillUpFromNetwork(n);
-    } else{
-        refreshWindow();
+    if(settings.value(AVOID_SCANS_SETTING, false).toBool()){
+        avoidScansCheckbox->setChecked(true);
     }
 
-    connect(networkTypes, &QComboBox::currentIndexChanged, this, [this](int index) {
-        refreshWindow();
+    connect(avoidScansCheckbox, &QCheckBox::checkStateChanged, this, [=]{
+        settings.setValue(AVOID_SCANS_SETTING, avoidScansCheckbox->isChecked());
     });
 
-    connect(saveButton, &QPushButton::clicked, this, [this]() {
-        switch(networkTypes->currentIndex()){
-            case network_type::OPEN:
-                open_config{networkName->text().toStdString(), autoconnectEnabled->isChecked()}.save();
-
-                break;
-            case network_type::PSK:
-                psk_config{networkName->text().toStdString(), networkPassword->text().toStdString(), autoconnectEnabled->isChecked()}
-                .save();
-                break;
-            case network_type::_8021x:
-                eap_config{
-                    networkName->text().toStdString(),
-                    autoconnectEnabled->isChecked(),
-                    supportedEAPMethods()[eapMethod->currentIndex()].toStdString(),
-                    eapIdentity->text().toStdString(),
-                    supportedPhase2Methods()[eapPhase2Method->currentIndex()].toStdString(),
-                    eapPhase2Identity->text().toStdString(),
-                    networkPassword->text().toStdString()
-                }.save();
-                break;
+    connect(refreshButton, &QPushButton::clicked, this, [=]{
+        try{
+            refreshNetworks(); 
+        } catch(...){
+            //we might as well just ignore, handle it in the tray
         }
+    });
 
-        this->close();
+    connect(addButton, &QPushButton::clicked, this, [=]{
+        AddEditWindow *win = new AddEditWindow(nullptr, this);
+        win->exec();
+        refreshNetworks();
+    });
+    
+    connect(listWidget, &QListWidget::itemEntered, this,
+            [=](QListWidgetItem* it){
+        QString info = it->data(KnownRoles::Show).toString();
+
+        auto pos = QCursor::pos();
+
+        pos.setY(pos.y() - 5);
+
+        QToolTip::showText(pos, info, listWidget);
     });
 
     setLayout(layout);
+    setMinimumWidth(350);
 }
 
-void ManageWindow::fillUpFromNetwork(const known_network *n){
-    networkName->setText(n->name.c_str());
-
-    auto selected = 0;
-    auto types = supportedTypes();
-
-    if((selected = types.indexOf(n->type)) < 0){
-        selected = 0;
+void ManageWindow::keyPressEvent(QKeyEvent *event) {
+    if(event->key() == Qt::Key_Escape){
+        event->ignore();
+        return;
     }
+}
 
-    networkTypes->setCurrentIndex(selected);
+void ManageWindow::closeEvent(QCloseEvent *event){
+    hide();
+    event->ignore();
+}
 
-    refreshWindow();
-
-    open_config cfg0;
-    psk_config cfg1;
-    eap_config cfg2;
-
-    switch(selected){
-        case network_type::OPEN:
-            cfg0 = open_config{n->name};
-            cfg0.read();
-
-            autoconnectEnabled->setChecked(cfg0.autoconnect);
+void ManageWindow::sortNetworks(std::vector<known_network> &nets){
+    switch(currentSortMethod){
+        case SortType::ByName:
+            std::sort(nets.begin(), nets.end(), [](known_network &a, known_network &b){
+                return QString::fromStdString(a.name).toLower() < QString::fromStdString(b.name).toLower();
+            });
             break;
+        case SortType::ByLast:
+            std::sort(nets.begin(), nets.end(), [](known_network &a, known_network &b){
+                auto dtA = QDateTime::fromString(QString::fromStdString(a.last_connected),
+                                         Qt::ISODate);
+                auto dtB = QDateTime::fromString(QString::fromStdString(b.last_connected),
+                                         Qt::ISODate);
 
-        case network_type::PSK:
-            cfg1 = psk_config{n->name};
-            cfg1.read();
-
-            autoconnectEnabled->setChecked(cfg1.autoconnect);
-            networkPassword->setText(cfg1.psk.c_str());
+                return dtA.toSecsSinceEpoch() > dtB.toSecsSinceEpoch();
+            });
             break;
-
-        case network_type::_8021x:
-            cfg2 = eap_config{n->name};    
-            cfg2.read();
-
-            autoconnectEnabled->setChecked(cfg2.autoconnect);
-
-            auto methods = supportedEAPMethods();
-
-            if((selected = methods.indexOf(cfg2.eap_method)) < 0){
-                std::cout << "[Warning] Unsupported EAP method\n";
-                selected = 0;
-            }
-
-            eapMethod->setCurrentIndex(selected);
-            eapIdentity->setText(cfg2.eap_identity.c_str());
-
-            auto phase2_methods = supportedPhase2Methods(); 
-            if((selected = phase2_methods.indexOf(cfg2.phase2_method)) < 0){
-                std::cout << "[Warning] Unsupported EAP Phase2 method\n";
-                selected = 0;
-            }
-
-            eapPhase2Method->setCurrentIndex(selected);
-            eapPhase2Identity->setText(cfg2.phase2_identity.c_str());
-            networkPassword->setText(cfg2.phase2_password.c_str());
-
+        case SortType::ByType:
+            std::sort(nets.begin(), nets.end(), [](known_network &a, known_network &b){
+                return QString::fromStdString(a.type).toLower() < QString::fromStdString(b.type).toLower();
+            });
+            break;
+        default:
             break;
     }
+}
+
+void ManageWindow::refreshNetworks(){
+    listWidget->clear();
+
+    auto inetworks = this->manager.known_networks();
+
+    sortNetworks(inetworks);
+
+    for(auto n: inetworks){
+        auto *it = new QListWidgetItem(n.name.c_str());
+        
+        QString to_show = QString("Type: %1\nHidden: %2\nAutoconnect: %3\nLast connected: %4")
+        .arg(n.type)
+        .arg(n.hidden ? "true" : "false")
+        .arg(n.autoconnect ? "true" : "false")
+        .arg(n.last_connected);
+
+        it->setData(KnownRoles::Show, to_show);
+        
+        QVariant data;
+
+        data.setValue(n);
+
+        it->setData(KnownRoles::Manage, data);
+        
+        listWidget->addItem(it);
+    }
+}
+
+QMenu *ManageWindow::createSortItems(){
+    auto *menu = new QMenu(sortButton);
+
+    auto *group = new QActionGroup(menu);
+
+    auto addAction = [=](const char *val){
+        QAction *p = menu->addAction(tr(val));
+
+        group->addAction(p);
+        p->setCheckable(true);
+
+        return p;
+    };
+
+    QAction *name = addAction("By name");
+    connect(name, &QAction::triggered, this, [this](){
+        currentSortMethod = SortType::ByName;
+        settings.setValue(SORT_SETTING, (int)currentSortMethod);
+        refreshNetworks();
+    });
+
+    QAction *last = addAction("By last connected");
+    connect(last, &QAction::triggered, this, [this](){
+        currentSortMethod = SortType::ByLast;
+        settings.setValue(SORT_SETTING, (int)currentSortMethod);
+        refreshNetworks();
+    });
+
+    QAction *type = addAction("By type");
+    connect(type, &QAction::triggered, this, [this](){
+        currentSortMethod = SortType::ByType;
+        settings.setValue(SORT_SETTING, (int)currentSortMethod);
+        refreshNetworks();
+    });
+
+    auto sortType = (SortType)settings.value(SORT_SETTING, 0).toInt();
+
+    switch(sortType){
+        case SortType::ByName:
+            name->setChecked(true);
+            break;
+        case SortType::ByLast:
+            last->setChecked(true);
+            break;
+        case SortType::ByType:
+            last->setChecked(true);
+            break;
+    }
+
+    currentSortMethod = sortType;
+
+    return menu;
+}
+
+void ManageWindow::createItems(){
+    sortButton = new QToolButton(this);
+
+    sortButton->setFixedSize(15, 15);
+    sortButton->setIconSize(QSize(15, 15));
+    sortButton->setIcon(QIcon(SORT_ICON_PATH));
+
+    sortButton->setStyleSheet(QString{"QToolButton {border: 0px; margin-top: -3px;} QToolButton::menu-indicator { image: none; }"});
+
+    sortButton->setPopupMode(QToolButton::InstantPopup);
+
+    sortButton->setMenu(createSortItems());
+
+    listWidget = new QListWidget(this);
+    listWidget->setMouseTracking(true);
+    listWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(listWidget, &QWidget::customContextMenuRequested,
+        this, [&](const QPoint &pos){
+            QMenu menu(this);
+
+            QAction *editAct = menu.addAction("Edit");
+            QAction *deleteAct = menu.addAction("Forget");
+    
+            QAction *chosen = menu.exec(QCursor::pos());
+
+            if (!chosen) {
+                return;
+            }
+
+            auto cur = listWidget->indexAt(pos);
+            auto data = cur.data(KnownRoles::Manage).value<known_network>();
+
+            if (chosen == editAct) {
+                AddEditWindow *win = new AddEditWindow(&data, this);
+                win->exec();
+                refreshNetworks(); //in case autoconnect is changed
+            } else if (chosen == deleteAct) {
+                this->manager.forget_known_network(data);
+
+                delete listWidget->takeItem(cur.row());
+            }
+    });
+
+    avoidScansCheckbox = new QCheckBox("Avoid scans", this);
+
+    refreshButton = new QPushButton("Refresh", this);
+    refreshButton->setFixedSize(95, 25);
+
+    addButton = new QPushButton("Add new", this);
+    addButton->setFixedSize(95, 25);
+      
+    layout = new QVBoxLayout(this);
+
+    layout->addWidget(sortButton, 0, Qt::AlignRight);
+
+    layout->addWidget(listWidget);
+
+    QHBoxLayout *layout2 = new QHBoxLayout();
+    
+    layout2->addStretch();
+    layout2->addWidget(avoidScansCheckbox, 0, Qt::AlignLeft);
+
+    layout2->addWidget(refreshButton);
+    layout2->addWidget(addButton);
+
+
+    layout->addLayout(layout2);
+}
+
+void ManageWindow::setFlags(){
+    Qt::WindowFlags flags = windowFlags();
+    
+    flags &= ~Qt::WindowFullscreenButtonHint;
+    flags &= ~Qt::WindowMaximizeButtonHint;
+    flags &= ~Qt::WindowMinimizeButtonHint;
+
+    setWindowFlags(flags);
 }

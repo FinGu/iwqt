@@ -3,9 +3,10 @@
 
 #include "iwd.hpp"
 
+#include "adapter.hpp"
 #include "device.hpp"
 
-#include "known_window.hpp"
+#include "manage_window.hpp"
 
 #include <QSystemTrayIcon>
 
@@ -40,6 +41,7 @@ class Tray : public QDialog {
   private:
     iwd &manager;
 
+    adapter cur_adapter;
     device cur_device;
 
     void createTray();
@@ -47,7 +49,8 @@ class Tray : public QDialog {
     QPixmap addNetwork(network n);
 
     QPixmap processConnectedNetwork(network n);
-    void refreshNetworks(bool);
+    void updateEnabledCheckbox(bool);
+    void refreshTray(bool);
     void makeAgent();
 
     std::string requestPassphrase(const std::string& path);
@@ -55,7 +58,7 @@ class Tray : public QDialog {
 
     void createItems();
     void fillMenu();
-    void createKnownWindow();
+    void createManageWindow();
 
     void connectedHandler(network n, QPixmap icon);
 
@@ -64,15 +67,15 @@ class Tray : public QDialog {
     std::unique_ptr<sdbus::IProxy> saved_proxy;
     QMenu *networksMenu = NULL;
 
-    QAction *avoidScans;
+    QAction *enabledAdapterAction;
     QAction *scanAction;
-    QAction *knownAction;
+    QAction *manageAction;
     QAction *quitAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
 
-    KnownWindow *kwindow;
+    ManageWindow *mwindow;
 
     QSettings settings;
 };

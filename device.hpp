@@ -12,19 +12,19 @@
 class iwd;
 
 class device {
-  private:
-    iwd *manager;
-
   public:
+    iwd *manager;
+    
     device() {};
 
-    device(iwd *manager, std::string name, sdbus::ObjectPath path, bool powered): manager(manager), name(name), path(path), powered(powered) {}
+    device(iwd *manager, std::string name, bool powered, sdbus::ObjectPath path, sdbus::ObjectPath adapter): manager(manager), name(name), powered(powered), path(path), parent_adapter(adapter) {}
 
     std::string name;
-    sdbus::ObjectPath path;
     bool powered;
+    sdbus::ObjectPath path, parent_adapter;
 
     void scan();
+
     void connect(const network&);
     std::unique_ptr<sdbus::IProxy> connect(const network&, std::function<void(std::optional<sdbus::Error>)>);
     void disconnect();

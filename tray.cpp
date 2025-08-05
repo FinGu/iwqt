@@ -38,11 +38,11 @@ Tray::Tray(iwd &in): manager(in) {
     instantiateDevice();
 
     fillMenu();
-    createKnownWindow();
+    createManageWindow();
 
     connect(trayIcon, &QSystemTrayIcon::activated, this, &Tray::iconActivated);
 
-    refreshNetworks(true);
+    refreshTray(true);
 
     makeAgent();
 }
@@ -56,10 +56,10 @@ void Tray::iconActivated(QSystemTrayIcon::ActivationReason reason){
     switch (reason) {
     case QSystemTrayIcon::Trigger:
     case QSystemTrayIcon::DoubleClick:
-        if(kwindow->isVisible()){
-            kwindow->hide();
+        if(mwindow->isVisible()){
+            mwindow->hide();
         } else{
-            kwindow->show();
+            mwindow->show();
         }
         break;
     default:
@@ -68,16 +68,25 @@ void Tray::iconActivated(QSystemTrayIcon::ActivationReason reason){
 }
 
 void Tray::instantiateDevice() {
+    try{
+        this->cur_adapter = manager.get_first_adapter().value();
+    } catch(...){
+        Utils::adapterNotFound(this);
+        QCoreApplication::exit(0);
+    }
+
+    updateEnabledCheckbox(cur_adapter.get_powered());
+
     try {
-        this->cur_device = manager.get_first_device().value();
+        this->cur_device = this->cur_adapter.get_first_device().value();
     } catch(...) {
         trayIcon->show();
 
-        Utils::iwdNotUp(this);
+        Utils::deviceNotFound(this);
 
         for(;;) {
             try {
-                this->cur_device = manager.get_first_device().value();
+                this->cur_device = this->cur_adapter.get_first_device().value();
                 break;
             } catch(...) {
                 QThread::sleep(2);
@@ -286,8 +295,17 @@ QPixmap Tray::processConnectedNetwork(network n) {
     return icon;
 }
 
-void Tray::refreshNetworks(bool should_scan) {
+void Tray::updateEnabledCheckbox(bool powered){
+    enabledAdapterAction->setChecked(powered);
+
+    networksMenu->setEnabled(powered);
+    scanAction->setEnabled(powered);
+}
+
+void Tray::refreshTray(bool should_scan) {
     networksMenu->clear();
+
+    updateEnabledCheckbox(cur_adapter.get_powered());
 
     if(should_scan) {
         this->cur_device.scan();
@@ -329,35 +347,33 @@ void Tray::setVisible(bool visible) {
 }
 
 void Tray::createItems() {
-    avoidScans = new QAction(tr("&Avoid scans"), this);
-    avoidScans->setCheckable(true);
+    enabledAdapterAction = new QAction(tr("&Enabled"), this);
+    enabledAdapterAction->setCheckable(true);
 
-    if(settings.value(AVOID_SCANS_SETTING, false).toBool()){
-        avoidScans->setChecked(true);
-    }
-
-    connect(avoidScans, &QAction::triggered, this, [this]{
-        settings.setValue(AVOID_SCANS_SETTING, avoidScans->isChecked());
+    connect(enabledAdapterAction, &QAction::triggered, this, [this]{
+        auto checked = enabledAdapterAction->isChecked();
+        cur_adapter.set_powered(checked);
+        updateEnabledCheckbox(checked);
     });
 
     networksMenu = new QMenu(tr("&Networks"), this);
     connect(networksMenu, &QMenu::aboutToShow, this, [this] {
         try {
-            this->refreshNetworks(!avoidScans->isChecked());
+            this->refreshTray(!settings.value(AVOID_SCANS_SETTING, false).toBool());
         } catch(...) {
             instantiateDevice(); //try to recover
         }
     });
 
-    knownAction = new QAction(tr("&Known"), this);
-    connect(knownAction, &QAction::triggered, this, [this]() {
-        kwindow->show();        
+    manageAction = new QAction(tr("&Manage"), this);
+    connect(manageAction, &QAction::triggered, this, [this]() {
+        mwindow->show();        
     });
 
     scanAction = new QAction(tr("&Scan"), this);
     connect(scanAction, &QAction::triggered, this, [this]() {
         try {
-            this->refreshNetworks(true);
+            this->refreshTray(true);
         } catch(...) {
             instantiateDevice();
         }
@@ -371,18 +387,19 @@ void Tray::createItems() {
 void Tray::fillMenu() {
     trayIconMenu = new QMenu(this);
 
+    trayIconMenu->addAction(enabledAdapterAction);
+
     trayIconMenu->addMenu(networksMenu);
-    trayIconMenu->addAction(avoidScans);
     trayIconMenu->addAction(scanAction);
 
     trayIconMenu->addSeparator();
-    trayIconMenu->addAction(knownAction);
+    trayIconMenu->addAction(manageAction);
     trayIconMenu->addAction(quitAction);
 
     trayIcon->setContextMenu(trayIconMenu);
     trayIcon->show();
 }
 
-void Tray::createKnownWindow(){
-    kwindow = new KnownWindow(manager, this);
+void Tray::createManageWindow(){
+    mwindow = new ManageWindow(manager, this);
 }

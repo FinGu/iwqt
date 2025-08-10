@@ -19,6 +19,10 @@ namespace Utils{
 
         QMessageBox::warning(parent, QCoreApplication::applicationName(), data);
     }
+
+    QPixmap getIcon(const char *name){
+        return QPixmap(name).scaled(TRAY_ICON_SCALE);
+    }
 }
 
 

@@ -49,7 +49,7 @@ Tray::Tray(iwd &in): manager(in) {
 
 void Tray::createTray() {
     trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setIcon(QIcon(FAILURE_ICON_PATH));
+    trayIcon->setIcon(Utils::getIcon(FAILURE_ICON_PATH));
 }
 
 void Tray::iconActivated(QSystemTrayIcon::ActivationReason reason){
@@ -221,25 +221,19 @@ void Tray::connectedHandler(network n, QPixmap icon){
 }
 
 QPixmap Tray::getIconForStrength(network::strength_type st){
-    QPixmap icon;
     switch (st) {
         case network::strength_type::EXCELLENT:
-            icon = QPixmap(EXCELLENT_ICON_PATH).scaled(TRAY_ICON_SCALE);
-            break;
+            return Utils::getIcon(EXCELLENT_ICON_PATH);
         case network::strength_type::GOOD:
-            icon = QPixmap(GOOD_ICON_PATH).scaled(TRAY_ICON_SCALE);
-            break;
+            return Utils::getIcon(GOOD_ICON_PATH);
         case network::strength_type::FAIR:
-            icon = QPixmap(FAIR_ICON_PATH).scaled(TRAY_ICON_SCALE);
-            break;
+            return Utils::getIcon(FAIR_ICON_PATH);
         case network::strength_type::WEAK:
-            icon = QPixmap(WEAK_ICON_PATH).scaled(TRAY_ICON_SCALE);
-            break;
+            return Utils::getIcon(WEAK_ICON_PATH);
         case network::strength_type::POOR:
-            icon = QPixmap(POOR_ICON_PATH).scaled(TRAY_ICON_SCALE);
-            break;
+            return Utils::getIcon(POOR_ICON_PATH);
     }
-    return icon;
+    return {};
 }
 
 QPixmap Tray::addNetwork(network n) {
@@ -277,7 +271,7 @@ QPixmap Tray::processConnectedNetwork(network n) {
     connect(disconnectAction, &QAction::triggered, this, [this, n] {
         this->cur_device.disconnect();
 
-        trayIcon->setIcon(QPixmap(DISCONNECTED_ICON_PATH).scaled(TRAY_ICON_SCALE));
+        trayIcon->setIcon(Utils::getIcon(DISCONNECTED_ICON_PATH));
 
         trayIcon->showMessage(
             tr("Disconnected from %1").arg(n.name),
@@ -304,8 +298,14 @@ void Tray::updateEnabledCheckbox(bool powered){
 
 void Tray::refreshTray(bool should_scan) {
     networksMenu->clear();
+    
+    bool powered = cur_adapter.get_powered();
 
-    updateEnabledCheckbox(cur_adapter.get_powered());
+    updateEnabledCheckbox(powered);
+
+    if(!powered){
+        return;
+    }
 
     if(should_scan) {
         this->cur_device.scan();
@@ -334,7 +334,7 @@ void Tray::refreshTray(bool should_scan) {
     }
 
     if(size == inetworks.size()){
-        trayIcon->setIcon(QIcon(DISCONNECTED_ICON_PATH));
+        trayIcon->setIcon(Utils::getIcon(DISCONNECTED_ICON_PATH));
     }
 
     for(auto n: inetworks) {

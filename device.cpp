@@ -36,7 +36,6 @@ std::vector<network> device::get_networks() {
     std::vector<sdbus::Struct<sdbus::ObjectPath, int16_t>> nets;
 
     auto reply = proxy->callMethod(call);
-
     reply >> nets;
 
     managed_objects all_objects = this->manager->get_objects();

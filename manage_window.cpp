@@ -29,7 +29,7 @@ enum KnownRoles{
 };
 
 ManageWindow::ManageWindow(iwd &manager, QWidget *parent): QDialog(parent), manager(manager){
-    setWindowIcon(QPixmap(EXCELLENT_ICON_PATH));
+    setWindowIcon(Utils::getIcon(EXCELLENT_ICON_PATH));
 
     setFlags();
 

@@ -6,6 +6,8 @@ namespace Utils{
     void deviceNotFound(QWidget *parent = nullptr);
  
     void networkConfigure(const std::string &type, QWidget *parent = nullptr);
+
+    QPixmap getIcon(const char *name);
 }
 
 constexpr auto SORT_SETTING = "sort_type";

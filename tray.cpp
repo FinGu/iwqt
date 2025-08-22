@@ -75,7 +75,7 @@ void Tray::instantiateDevice() {
         QCoreApplication::exit(0);
     }
 
-    updateEnabledCheckbox(cur_adapter.get_powered());
+    updateEnabledTray(cur_adapter.get_powered());
 
     try {
         this->cur_device = this->cur_adapter.get_first_device().value();
@@ -289,11 +289,13 @@ QPixmap Tray::processConnectedNetwork(network n) {
     return icon;
 }
 
-void Tray::updateEnabledCheckbox(bool powered){
+void Tray::updateEnabledTray(bool powered){
     enabledAdapterAction->setChecked(powered);
 
     networksMenu->setEnabled(powered);
     scanAction->setEnabled(powered);
+
+    trayIcon->setIcon(Utils::getIcon(powered ? DISCONNECTED_ICON_PATH : FAILURE_ICON_PATH));
 }
 
 void Tray::refreshTray(bool should_scan) {
@@ -301,7 +303,7 @@ void Tray::refreshTray(bool should_scan) {
     
     bool powered = cur_adapter.get_powered();
 
-    updateEnabledCheckbox(powered);
+    updateEnabledTray(powered);
 
     if(!powered){
         return;
@@ -353,7 +355,7 @@ void Tray::createItems() {
     connect(enabledAdapterAction, &QAction::triggered, this, [this]{
         auto checked = enabledAdapterAction->isChecked();
         cur_adapter.set_powered(checked);
-        updateEnabledCheckbox(checked);
+        updateEnabledTray(checked);
     });
 
     networksMenu = new QMenu(tr("&Networks"), this);

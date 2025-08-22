@@ -49,7 +49,7 @@ class Tray : public QDialog {
     QPixmap addNetwork(network n);
 
     QPixmap processConnectedNetwork(network n);
-    void updateEnabledCheckbox(bool);
+    void updateEnabledTray(bool);
     void refreshTray(bool);
     void makeAgent();
 

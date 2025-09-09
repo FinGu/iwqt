@@ -14,7 +14,7 @@ namespace Utils{
     }
 
     void networkConfigure(const std::string &type, QWidget *parent){
-        QString data = QObject::tr("Something is wrong with the %1 network configuration. These types of network need to be configured through the Known Networks menu.")
+        QString data = QObject::tr("Something is wrong with the %1 network configuration. These types of network need to be configured through the Manage Networks menu.")
             .arg(type);
 
         QMessageBox::warning(parent, QCoreApplication::applicationName(), data);

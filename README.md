@@ -12,7 +12,7 @@ Available in the AUR as [iwqt](https://aur.archlinux.org/packages/iwqt) (thanks 
 ## Generic
 ```bash
 git clone https://github.com/FinGu/iwqt
-meson build
+cd iwqt && meson build
 cd build && meson install
 ```
 

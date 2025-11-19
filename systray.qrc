@@ -7,6 +7,13 @@
    <file>images/wireless-4.svg</file>
    <file>images/wireless-disabled.svg</file>
    <file>images/wireless-none.svg</file>
+   <file>images/dark-wireless-0.svg</file>
+   <file>images/dark-wireless-1.svg</file>
+   <file>images/dark-wireless-2.svg</file>
+   <file>images/dark-wireless-3.svg</file>
+   <file>images/dark-wireless-4.svg</file>
+   <file>images/dark-wireless-disabled.svg</file>
+   <file>images/dark-wireless-none.svg</file>
    <file>images/sort.png</file>
 </qresource>
 </RCC>

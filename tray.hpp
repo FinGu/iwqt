@@ -41,6 +41,8 @@ class Tray : public QDialog {
   private:
     iwd &manager;
 
+    bool isDarkMode;
+
     adapter cur_adapter;
     device cur_device;
 

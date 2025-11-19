@@ -32,6 +32,9 @@
 #include <unistd.h>
 
 Tray::Tray(iwd &in): manager(in) {
+    isDarkMode = 
+        this->palette().window().color().value() < this->palette().windowText().color().value();
+
     createTray();
 
     createItems();
@@ -49,7 +52,7 @@ Tray::Tray(iwd &in): manager(in) {
 
 void Tray::createTray() {
     trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setIcon(Utils::getIcon(FAILURE_ICON_PATH));
+    trayIcon->setIcon(Utils::getIcon(isDarkMode ? FAILURE_ICON_PATH : DARK_FAILURE_ICON_PATH));
 }
 
 void Tray::iconActivated(QSystemTrayIcon::ActivationReason reason){
@@ -223,15 +226,15 @@ void Tray::connectedHandler(network n, QPixmap icon){
 QPixmap Tray::getIconForStrength(network::strength_type st){
     switch (st) {
         case network::strength_type::EXCELLENT:
-            return Utils::getIcon(EXCELLENT_ICON_PATH);
+            return Utils::getIcon(isDarkMode ? EXCELLENT_ICON_PATH : DARK_EXCELLENT_ICON_PATH);
         case network::strength_type::GOOD:
-            return Utils::getIcon(GOOD_ICON_PATH);
+            return Utils::getIcon(isDarkMode ? GOOD_ICON_PATH : DARK_GOOD_ICON_PATH);
         case network::strength_type::FAIR:
-            return Utils::getIcon(FAIR_ICON_PATH);
+            return Utils::getIcon(isDarkMode ? FAIR_ICON_PATH : DARK_FAIR_ICON_PATH);
         case network::strength_type::WEAK:
-            return Utils::getIcon(WEAK_ICON_PATH);
+            return Utils::getIcon(isDarkMode ? WEAK_ICON_PATH : DARK_WEAK_ICON_PATH);
         case network::strength_type::POOR:
-            return Utils::getIcon(POOR_ICON_PATH);
+            return Utils::getIcon(isDarkMode ? POOR_ICON_PATH : DARK_POOR_ICON_PATH);
     }
     return {};
 }
@@ -271,7 +274,7 @@ QPixmap Tray::processConnectedNetwork(network n) {
     connect(disconnectAction, &QAction::triggered, this, [this, n] {
         this->cur_device.disconnect();
 
-        trayIcon->setIcon(Utils::getIcon(DISCONNECTED_ICON_PATH));
+        trayIcon->setIcon(Utils::getIcon(isDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH));
 
         trayIcon->showMessage(
             tr("Disconnected from %1").arg(n.name),
@@ -295,7 +298,14 @@ void Tray::updateEnabledTray(bool powered){
     networksMenu->setEnabled(powered);
     scanAction->setEnabled(powered);
 
-    trayIcon->setIcon(Utils::getIcon(powered ? DISCONNECTED_ICON_PATH : FAILURE_ICON_PATH));
+    const char *icon;
+    if(powered){
+        icon = isDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH;
+    } else {
+        icon = isDarkMode ? FAILURE_ICON_PATH : DARK_FAILURE_ICON_PATH;
+    }
+
+    trayIcon->setIcon(Utils::getIcon(icon));
 }
 
 void Tray::refreshTray(bool should_scan) {
@@ -336,7 +346,7 @@ void Tray::refreshTray(bool should_scan) {
     }
 
     if(size == inetworks.size()){
-        trayIcon->setIcon(Utils::getIcon(DISCONNECTED_ICON_PATH));
+        trayIcon->setIcon(Utils::getIcon(isDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH));
     }
 
     for(auto n: inetworks) {

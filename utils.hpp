@@ -22,4 +22,13 @@ constexpr auto POOR_ICON_PATH = ":/images/wireless-0.svg";
 constexpr auto DISCONNECTED_ICON_PATH = ":/images/wireless-disabled.svg";
 constexpr auto FAILURE_ICON_PATH = ":/images/wireless-none.svg";
 
+constexpr auto DARK_EXCELLENT_ICON_PATH = ":/images/dark-wireless-4.svg";
+constexpr auto DARK_GOOD_ICON_PATH = ":/images/dark-wireless-3.svg";
+constexpr auto DARK_FAIR_ICON_PATH = ":/images/dark-wireless-2.svg";
+constexpr auto DARK_WEAK_ICON_PATH = ":/images/dark-wireless-1.svg";
+constexpr auto DARK_POOR_ICON_PATH = ":/images/dark-wireless-0.svg";
+
+constexpr auto DARK_DISCONNECTED_ICON_PATH = ":/images/dark-wireless-disabled.svg";
+constexpr auto DARK_FAILURE_ICON_PATH = ":/images/dark-wireless-none.svg";
+
 constexpr auto TRAY_ICON_SCALE = QSize(24,24);

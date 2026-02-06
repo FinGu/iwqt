@@ -41,11 +41,11 @@ ManageWindow::ManageWindow(iwd &manager, QWidget *parent): QDialog(parent), mana
         avoidScansCheckbox->setChecked(true);
     }
 
-    connect(avoidScansCheckbox, &QCheckBox::checkStateChanged, this, [=]{
+    connect(avoidScansCheckbox, &QCheckBox::checkStateChanged, this, [=, this]{
         settings.setValue(AVOID_SCANS_SETTING, avoidScansCheckbox->isChecked());
     });
 
-    connect(refreshButton, &QPushButton::clicked, this, [=]{
+    connect(refreshButton, &QPushButton::clicked, this, [=, this]{
         try{
             refreshNetworks(); 
         } catch(...){
@@ -53,14 +53,14 @@ ManageWindow::ManageWindow(iwd &manager, QWidget *parent): QDialog(parent), mana
         }
     });
 
-    connect(addButton, &QPushButton::clicked, this, [=]{
+    connect(addButton, &QPushButton::clicked, this, [=, this]{
         AddEditWindow *win = new AddEditWindow(nullptr, this);
         win->exec();
         refreshNetworks();
     });
     
     connect(listWidget, &QListWidget::itemEntered, this,
-            [=](QListWidgetItem* it){
+            [=, this](QListWidgetItem* it){
         QString info = it->data(KnownRoles::Show).toString();
 
         auto pos = QCursor::pos();

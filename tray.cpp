@@ -217,7 +217,7 @@ void Tray::connectedHandler(network n, QPixmap icon){
     }
 
     if(n.type == "8021x"){
-        QMetaObject::invokeMethod(this, [=]() {
+        QMetaObject::invokeMethod(this, [=, this]() {
             Utils::networkConfigure(n.type, this);
         });
     }
@@ -256,8 +256,8 @@ QPixmap Tray::addNetwork(network n) {
         return icon;
     }
 
-    connect(action, &QAction::triggered, this, [=] {
-        saved_proxy = this->cur_device.connect(n, [=](std::optional<sdbus::Error> e){
+    connect(action, &QAction::triggered, this, [=, this] {
+        saved_proxy = this->cur_device.connect(n, [=, this](std::optional<sdbus::Error> e){
             connectedHandler(n, icon); 
         });
         //needs to be saved so the callback is invoked later on

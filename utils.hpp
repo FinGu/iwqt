@@ -1,4 +1,5 @@
 #include <QWidget>
+#include <QSystemTrayIcon>
 
 namespace Utils{
     void adapterNotFound(QWidget *parent = nullptr);
@@ -12,6 +13,7 @@ namespace Utils{
 
 constexpr auto SORT_SETTING = "sort_type";
 constexpr auto AVOID_SCANS_SETTING = "avoid_scans";
+constexpr auto SHOW_NOTIFICATIONS_SETTING = "show_notifications";
 
 constexpr auto EXCELLENT_ICON_PATH = ":/images/wireless-4.svg";
 constexpr auto GOOD_ICON_PATH = ":/images/wireless-3.svg";

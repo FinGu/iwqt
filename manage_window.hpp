@@ -48,6 +48,7 @@ class ManageWindow: public QDialog{
         QPushButton *refreshButton;
         QPushButton *addButton;
         QCheckBox *avoidScansCheckbox;
+        QCheckBox *showNotificationsCheckbox;
 
         ManageWindow *mwindow;
 

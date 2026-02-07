@@ -4,6 +4,10 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 
+#include <sdbus-c++/IConnection.h>
+#include <sdbus-c++/Types.h>
+#include <sdbus-c++/sdbus-c++.h>
+
 namespace Utils{
     void adapterNotFound(QWidget *parent) {
         QMessageBox::critical(parent, QCoreApplication::applicationName(), QObject::tr("No adapters available!"));

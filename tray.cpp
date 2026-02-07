@@ -205,13 +205,14 @@ void Tray::connectedHandler(network n, QPixmap icon){
         QMetaObject::invokeMethod(this, [this, n, icon](){
             trayIcon->setIcon(icon);
 
-            trayIcon->showMessage(
-                tr("Connected to %1").arg(n.name),
-                tr("Type: %1").arg(n.type),
-                QSystemTrayIcon::Information,
-                3000
-            );
-
+            if(settings.value(SHOW_NOTIFICATIONS_SETTING, true).toBool()){
+                trayIcon->showMessage(
+                    tr("Connected to %1").arg(n.name),
+                    tr("Type: %1").arg(n.type),
+                    QSystemTrayIcon::Information,
+                    3000
+                );
+            }
         }, Qt::QueuedConnection);
         return;
     }
@@ -275,13 +276,15 @@ QPixmap Tray::processConnectedNetwork(network n) {
         this->cur_device.disconnect();
 
         trayIcon->setIcon(Utils::getIcon(isDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH));
-
-        trayIcon->showMessage(
-            tr("Disconnected from %1").arg(n.name),
-            "",
-            QSystemTrayIcon::Information,
-            3000
-        );
+        
+        if(settings.value(SHOW_NOTIFICATIONS_SETTING, true).toBool()){
+            trayIcon->showMessage(
+                tr("Disconnected from %1").arg(n.name),
+                "",
+                QSystemTrayIcon::Information,
+                3000
+            );
+        }
     });
 
     networksMenu->addAction(disconnectAction);

@@ -45,6 +45,14 @@ ManageWindow::ManageWindow(iwd &manager, QWidget *parent): QDialog(parent), mana
         settings.setValue(AVOID_SCANS_SETTING, avoidScansCheckbox->isChecked());
     });
 
+    if(settings.value(SHOW_NOTIFICATIONS_SETTING, true).toBool()){
+        showNotificationsCheckbox->setChecked(true);
+    }
+
+    connect(showNotificationsCheckbox, &QCheckBox::checkStateChanged, this, [=, this]{
+        settings.setValue(SHOW_NOTIFICATIONS_SETTING, showNotificationsCheckbox->isChecked());
+    });
+
     connect(refreshButton, &QPushButton::clicked, this, [=, this]{
         try{
             refreshNetworks(); 
@@ -240,6 +248,7 @@ void ManageWindow::createItems(){
     });
 
     avoidScansCheckbox = new QCheckBox("Avoid scans", this);
+    showNotificationsCheckbox = new QCheckBox("Show notifications", this);
 
     refreshButton = new QPushButton("Refresh", this);
     refreshButton->setFixedSize(95, 25);
@@ -257,6 +266,7 @@ void ManageWindow::createItems(){
     
     layout2->addStretch();
     layout2->addWidget(avoidScansCheckbox, 0, Qt::AlignLeft);
+    layout2->addWidget(showNotificationsCheckbox, 0, Qt::AlignLeft);
 
     layout2->addWidget(refreshButton);
     layout2->addWidget(addButton);

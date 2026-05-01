@@ -75,9 +75,9 @@ void Tray::instantiateDevice() {
         this->cur_adapter = manager.get_first_adapter().value();
     } catch(...){
         Utils::adapterNotFound(this);
-        QCoreApplication::exit(0);
+        exit(0);
     }
-
+        
     updateEnabledTray(cur_adapter.get_powered());
 
     try {

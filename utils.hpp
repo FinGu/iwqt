@@ -9,6 +9,8 @@ namespace Utils{
     void networkConfigure(const std::string &type, QWidget *parent = nullptr);
 
     QPixmap getIcon(const char *name);
+
+    bool isSystemDarkMode();
 }
 
 constexpr auto SORT_SETTING = "sort_type";

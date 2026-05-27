@@ -41,16 +41,17 @@ class Tray : public QDialog {
   private:
     iwd &manager;
 
-    bool isDarkMode;
+    bool isMenuDarkMode;
+    bool isTrayDarkMode;
 
     adapter cur_adapter;
     device cur_device;
 
     void createTray();
     void instantiateDevice();
-    QPixmap addNetwork(network n);
+    void addNetwork(network n);
 
-    QPixmap processConnectedNetwork(network n);
+    void processConnectedNetwork(network n);
     void updateEnabledTray(bool);
     void refreshTray(bool);
     void makeAgent();
@@ -64,7 +65,7 @@ class Tray : public QDialog {
 
     void connectedHandler(network n, QPixmap icon);
 
-    QPixmap getIconForStrength(network::strength_type st);
+    QPixmap getIconForStrength(network::strength_type st, bool isDark);
 
     std::unique_ptr<sdbus::IProxy> saved_proxy;
     QMenu *networksMenu = NULL;

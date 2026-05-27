@@ -32,8 +32,10 @@
 #include <unistd.h>
 
 Tray::Tray(iwd &in): manager(in) {
-    isDarkMode = 
+    isMenuDarkMode =
         this->palette().window().color().value() < this->palette().windowText().color().value();
+
+    isTrayDarkMode = Utils::isSystemDarkMode();
 
     createTray();
 
@@ -52,7 +54,7 @@ Tray::Tray(iwd &in): manager(in) {
 
 void Tray::createTray() {
     trayIcon = new QSystemTrayIcon(this);
-    trayIcon->setIcon(Utils::getIcon(isDarkMode ? FAILURE_ICON_PATH : DARK_FAILURE_ICON_PATH));
+    trayIcon->setIcon(Utils::getIcon(isTrayDarkMode ? FAILURE_ICON_PATH : DARK_FAILURE_ICON_PATH));
 }
 
 void Tray::iconActivated(QSystemTrayIcon::ActivationReason reason){
@@ -202,8 +204,9 @@ void Tray::connectedHandler(network n, QPixmap icon){
     auto connected = this->cur_device.get_connected_network().has_value();
 
     if(connected){
-        QMetaObject::invokeMethod(this, [this, n, icon](){
-            trayIcon->setIcon(icon);
+        QPixmap trayPixmap = getIconForStrength(n.strength(), isTrayDarkMode);
+        QMetaObject::invokeMethod(this, [this, trayPixmap, n](){
+            trayIcon->setIcon(trayPixmap);
 
             if(settings.value(SHOW_NOTIFICATIONS_SETTING, true).toBool()){
                 trayIcon->showMessage(
@@ -224,26 +227,26 @@ void Tray::connectedHandler(network n, QPixmap icon){
     }
 }
 
-QPixmap Tray::getIconForStrength(network::strength_type st){
+QPixmap Tray::getIconForStrength(network::strength_type st, bool isDark){
     switch (st) {
         case network::strength_type::EXCELLENT:
-            return Utils::getIcon(isDarkMode ? EXCELLENT_ICON_PATH : DARK_EXCELLENT_ICON_PATH);
+            return Utils::getIcon(isDark ? EXCELLENT_ICON_PATH : DARK_EXCELLENT_ICON_PATH);
         case network::strength_type::GOOD:
-            return Utils::getIcon(isDarkMode ? GOOD_ICON_PATH : DARK_GOOD_ICON_PATH);
+            return Utils::getIcon(isDark ? GOOD_ICON_PATH : DARK_GOOD_ICON_PATH);
         case network::strength_type::FAIR:
-            return Utils::getIcon(isDarkMode ? FAIR_ICON_PATH : DARK_FAIR_ICON_PATH);
+            return Utils::getIcon(isDark ? FAIR_ICON_PATH : DARK_FAIR_ICON_PATH);
         case network::strength_type::WEAK:
-            return Utils::getIcon(isDarkMode ? WEAK_ICON_PATH : DARK_WEAK_ICON_PATH);
+            return Utils::getIcon(isDark ? WEAK_ICON_PATH : DARK_WEAK_ICON_PATH);
         case network::strength_type::POOR:
-            return Utils::getIcon(isDarkMode ? POOR_ICON_PATH : DARK_POOR_ICON_PATH);
+            return Utils::getIcon(isDark ? POOR_ICON_PATH : DARK_POOR_ICON_PATH);
     }
     return {};
 }
 
-QPixmap Tray::addNetwork(network n) {
+void Tray::addNetwork(network n) {
     auto action = networksMenu->addAction(n.name.c_str());
 
-    QPixmap icon = getIconForStrength(n.strength());
+    QPixmap icon = getIconForStrength(n.strength(), isMenuDarkMode);
 
     action->setIcon(icon);
 
@@ -254,7 +257,7 @@ QPixmap Tray::addNetwork(network n) {
             action->setChecked(true);
         });
         trayIconMenu->setIcon(icon);
-        return icon;
+        return;
     }
 
     connect(action, &QAction::triggered, this, [=, this] {
@@ -263,20 +266,18 @@ QPixmap Tray::addNetwork(network n) {
         });
         //needs to be saved so the callback is invoked later on
     });
-
-    return icon;
 }
 
-QPixmap Tray::processConnectedNetwork(network n) {
-    auto icon = addNetwork(n);
+void Tray::processConnectedNetwork(network n) {
+    addNetwork(n);
 
     QAction* disconnectAction = new QAction(tr("&Disconnect"), this);
 
     connect(disconnectAction, &QAction::triggered, this, [this, n] {
         this->cur_device.disconnect();
 
-        trayIcon->setIcon(Utils::getIcon(isDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH));
-        
+        trayIcon->setIcon(Utils::getIcon(isTrayDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH));
+
         if(settings.value(SHOW_NOTIFICATIONS_SETTING, true).toBool()){
             trayIcon->showMessage(
                 tr("Disconnected from %1").arg(n.name),
@@ -292,7 +293,6 @@ QPixmap Tray::processConnectedNetwork(network n) {
     QAction* availableLabel = new QAction(tr("&Available"), this);
     availableLabel->setEnabled(false);
     networksMenu->addAction(availableLabel);
-    return icon;
 }
 
 void Tray::updateEnabledTray(bool powered){
@@ -303,9 +303,9 @@ void Tray::updateEnabledTray(bool powered){
 
     const char *icon;
     if(powered){
-        icon = isDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH;
+        icon = isTrayDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH;
     } else {
-        icon = isDarkMode ? FAILURE_ICON_PATH : DARK_FAILURE_ICON_PATH;
+        icon = isTrayDarkMode ? FAILURE_ICON_PATH : DARK_FAILURE_ICON_PATH;
     }
 
     trayIcon->setIcon(Utils::getIcon(icon));
@@ -341,7 +341,8 @@ void Tray::refreshTray(bool should_scan) {
             continue;
         }
 
-        trayIcon->setIcon(processConnectedNetwork(network));
+        processConnectedNetwork(network);
+        trayIcon->setIcon(getIconForStrength(network.strength(), isTrayDarkMode));
 
         inetworks.erase(inetworks.begin() + i);
 
@@ -349,7 +350,7 @@ void Tray::refreshTray(bool should_scan) {
     }
 
     if(size == inetworks.size()){
-        trayIcon->setIcon(Utils::getIcon(isDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH));
+        trayIcon->setIcon(Utils::getIcon(isTrayDarkMode ? DISCONNECTED_ICON_PATH : DARK_DISCONNECTED_ICON_PATH));
     }
 
     for(auto n: inetworks) {

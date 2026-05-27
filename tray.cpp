@@ -32,8 +32,7 @@
 #include <unistd.h>
 
 Tray::Tray(iwd &in): manager(in) {
-    isDarkMode = 
-        this->palette().window().color().value() < this->palette().windowText().color().value();
+    updateIconTheme();
 
     createTray();
 
@@ -196,6 +195,23 @@ void Tray::makeAgent() {
     };
 
     this->manager.register_agent(std::move(ui));
+}
+
+void Tray::updateIconTheme() {
+    auto iconTheme = settings.value(ICON_THEME_SETTING, ICON_THEME_AUTO).toString();
+
+    if(iconTheme == ICON_THEME_DARK) {
+        isDarkMode = true;
+        return;
+    }
+
+    if(iconTheme == ICON_THEME_LIGHT) {
+        isDarkMode = false;
+        return;
+    }
+
+    isDarkMode =
+        this->palette().window().color().value() < this->palette().windowText().color().value();
 }
 
 void Tray::connectedHandler(network n, QPixmap icon){
@@ -417,4 +433,13 @@ void Tray::fillMenu() {
 
 void Tray::createManageWindow(){
     mwindow = new ManageWindow(manager, this);
+    connect(mwindow, &ManageWindow::iconThemeChanged, this, [this] {
+        updateIconTheme();
+
+        try {
+            refreshTray(false);
+        } catch(...) {
+            instantiateDevice();
+        }
+    });
 }

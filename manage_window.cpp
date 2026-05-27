@@ -17,6 +17,8 @@
 #include <QDateTime>
 #include <QSettings>
 #include <QCheckBox>
+#include <QComboBox>
+#include <QLabel>
 
 #include <cctype>
 #include <sdbus-c++/Types.h>
@@ -51,6 +53,25 @@ ManageWindow::ManageWindow(iwd &manager, QWidget *parent): QDialog(parent), mana
 
     connect(showNotificationsCheckbox, &QCheckBox::checkStateChanged, this, [=, this]{
         settings.setValue(SHOW_NOTIFICATIONS_SETTING, showNotificationsCheckbox->isChecked());
+    });
+
+    auto currentIconTheme = settings.value(ICON_THEME_SETTING, ICON_THEME_AUTO).toString();
+    if(currentIconTheme != ICON_THEME_DARK && currentIconTheme != ICON_THEME_LIGHT) {
+        currentIconTheme = ICON_THEME_AUTO;
+    }
+
+    auto iconThemeIndex = iconThemeComboBox->findData(currentIconTheme);
+    if(iconThemeIndex >= 0) {
+        iconThemeComboBox->setCurrentIndex(iconThemeIndex);
+    }
+
+    connect(iconThemeComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
+        if(index < 0) {
+            return;
+        }
+
+        settings.setValue(ICON_THEME_SETTING, iconThemeComboBox->itemData(index).toString());
+        emit iconThemeChanged();
     });
 
     connect(refreshButton, &QPushButton::clicked, this, [=, this]{
@@ -250,6 +271,12 @@ void ManageWindow::createItems(){
     avoidScansCheckbox = new QCheckBox("Avoid scans", this);
     showNotificationsCheckbox = new QCheckBox("Show notifications", this);
 
+    iconThemeLabel = new QLabel(tr("Icon theme"), this);
+    iconThemeComboBox = new QComboBox(this);
+    iconThemeComboBox->addItem(tr("Auto"), QString(ICON_THEME_AUTO));
+    iconThemeComboBox->addItem(tr("Dark Panel"), QString(ICON_THEME_DARK));
+    iconThemeComboBox->addItem(tr("Light Panel"), QString(ICON_THEME_LIGHT));
+
     refreshButton = new QPushButton("Refresh", this);
     refreshButton->setFixedSize(95, 25);
 
@@ -262,6 +289,12 @@ void ManageWindow::createItems(){
 
     layout->addWidget(listWidget);
 
+    QHBoxLayout *iconThemeLayout = new QHBoxLayout();
+
+    iconThemeLayout->addStretch();
+    iconThemeLayout->addWidget(iconThemeLabel);
+    iconThemeLayout->addWidget(iconThemeComboBox);
+
     QHBoxLayout *layout2 = new QHBoxLayout();
     
     layout2->addStretch();
@@ -271,7 +304,7 @@ void ManageWindow::createItems(){
     layout2->addWidget(refreshButton);
     layout2->addWidget(addButton);
 
-
+    layout->addLayout(iconThemeLayout);
     layout->addLayout(layout2);
 }
 

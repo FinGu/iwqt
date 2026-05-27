@@ -16,7 +16,9 @@ class QHBoxLayout;
 class QPushButton;
 class QCloseEvent;
 class QToolButton;
-class QCheckbox;
+class QCheckBox;
+class QComboBox;
+class QLabel;
 QT_END_NAMESPACE
 
 Q_DECLARE_METATYPE(known_network);
@@ -32,6 +34,9 @@ class ManageWindow: public QDialog{
 
     public:
         ManageWindow(iwd &manager, QWidget *parent = nullptr);
+
+    signals:
+        void iconThemeChanged();
         
     protected:
         void keyPressEvent(QKeyEvent *event) override;
@@ -49,6 +54,8 @@ class ManageWindow: public QDialog{
         QPushButton *addButton;
         QCheckBox *avoidScansCheckbox;
         QCheckBox *showNotificationsCheckbox;
+        QLabel *iconThemeLabel;
+        QComboBox *iconThemeComboBox;
 
         ManageWindow *mwindow;
 

@@ -14,6 +14,10 @@ namespace Utils{
 constexpr auto SORT_SETTING = "sort_type";
 constexpr auto AVOID_SCANS_SETTING = "avoid_scans";
 constexpr auto SHOW_NOTIFICATIONS_SETTING = "show_notifications";
+constexpr auto ICON_THEME_SETTING = "icon_theme";
+constexpr auto ICON_THEME_AUTO = "auto";
+constexpr auto ICON_THEME_DARK = "dark";
+constexpr auto ICON_THEME_LIGHT = "light";
 
 constexpr auto EXCELLENT_ICON_PATH = ":/images/wireless-4.svg";
 constexpr auto GOOD_ICON_PATH = ":/images/wireless-3.svg";

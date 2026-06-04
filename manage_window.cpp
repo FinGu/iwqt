@@ -274,8 +274,8 @@ void ManageWindow::createItems(){
     iconThemeLabel = new QLabel(tr("Icon theme"), this);
     iconThemeComboBox = new QComboBox(this);
     iconThemeComboBox->addItem(tr("Auto"), QString(ICON_THEME_AUTO));
-    iconThemeComboBox->addItem(tr("Dark Panel"), QString(ICON_THEME_DARK));
-    iconThemeComboBox->addItem(tr("Light Panel"), QString(ICON_THEME_LIGHT));
+    iconThemeComboBox->addItem(tr("Dark panel"), QString(ICON_THEME_DARK));
+    iconThemeComboBox->addItem(tr("Light panel"), QString(ICON_THEME_LIGHT));
 
     refreshButton = new QPushButton("Refresh", this);
     refreshButton->setFixedSize(95, 25);

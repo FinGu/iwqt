@@ -223,10 +223,10 @@ QMenu *ManageWindow::createThemeItems(){
     QAction *aut = addAction("Auto");
     connect(aut, &QAction::triggered, this, [=](){ setTheme(ICON_THEME_AUTO); });
 
-    QAction *dark = addAction("Dark Panel");
+    QAction *dark = addAction("Dark panel");
     connect(dark, &QAction::triggered, this, [=](){ setTheme(ICON_THEME_DARK); });
 
-    QAction *light = addAction("Light Panel");
+    QAction *light = addAction("Light panel");
     connect(light, &QAction::triggered, this, [=](){ setTheme(ICON_THEME_LIGHT); });
 
     auto iconTheme = settings.value(ICON_THEME_SETTING, ICON_THEME_AUTO).toString();

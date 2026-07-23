@@ -27,6 +27,10 @@ namespace Utils{
     QPixmap getIcon(const char *name){
         return QPixmap(name).scaled(TRAY_ICON_SCALE);
     }
+
+    bool getAutoDarkMode(QWidget *parent){
+        return parent->palette().window().color().value() < parent->palette().windowText().color().value();
+    }
 }
 
 

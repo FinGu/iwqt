@@ -43,9 +43,11 @@ class ManageWindow: public QDialog{
         void closeEvent(QCloseEvent *event) override;
 
     private:
+        bool isDarkMode;
+
         iwd &manager;
 
-        QToolButton *sortButton;
+        QToolButton *sortButton, *themeButton;
 
         QListWidget *listWidget;
         QVBoxLayout *layout;         
@@ -61,9 +63,13 @@ class ManageWindow: public QDialog{
 
         void setFlags();
         void createItems();
+
         QMenu *createSortItems();
+        QMenu *createThemeItems();
+
         void refreshNetworks();
         void sortNetworks(std::vector<known_network>&);
+        void updateButtonIcons();
 
         SortType currentSortMethod = SortType::ByName;
         QSettings settings;

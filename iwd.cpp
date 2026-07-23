@@ -5,7 +5,6 @@
 
 #include <map>
 #include <optional>
-#include <iostream>
 
 iwd::iwd() {
     this->system_bus = sdbus::createSystemBusConnection();

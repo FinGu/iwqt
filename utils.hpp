@@ -9,6 +9,8 @@ namespace Utils{
     void networkConfigure(const std::string &type, QWidget *parent = nullptr);
 
     QPixmap getIcon(const char *name);
+    
+    bool getAutoDarkMode(QWidget *parent);
 }
 
 constexpr auto SORT_SETTING = "sort_type";
@@ -36,5 +38,11 @@ constexpr auto DARK_POOR_ICON_PATH = ":/images/dark-wireless-0.svg";
 
 constexpr auto DARK_DISCONNECTED_ICON_PATH = ":/images/dark-wireless-disabled.svg";
 constexpr auto DARK_FAILURE_ICON_PATH = ":/images/dark-wireless-none.svg";
+
+constexpr auto SORT_ICON_PATH = ":/images/sort.png";
+constexpr auto DARK_SORT_ICON_PATH = ":/images/dark-sort.png";
+
+constexpr auto THEME_ICON_PATH = ":/images/theme.png";
+constexpr auto DARK_THEME_ICON_PATH = ":/images/dark-theme.png";
 
 constexpr auto TRAY_ICON_SCALE = QSize(24,24);

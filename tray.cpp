@@ -200,18 +200,12 @@ void Tray::makeAgent() {
 void Tray::updateIconTheme() {
     auto iconTheme = settings.value(ICON_THEME_SETTING, ICON_THEME_AUTO).toString();
 
-    if(iconTheme == ICON_THEME_DARK) {
-        isDarkMode = true;
+    if(iconTheme == ICON_THEME_AUTO){
+        isDarkMode = Utils::getAutoDarkMode(this);
         return;
     }
 
-    if(iconTheme == ICON_THEME_LIGHT) {
-        isDarkMode = false;
-        return;
-    }
-
-    isDarkMode =
-        this->palette().window().color().value() < this->palette().windowText().color().value();
+    isDarkMode = iconTheme == ICON_THEME_DARK;
 }
 
 void Tray::connectedHandler(network n, QPixmap icon){
@@ -409,7 +403,6 @@ void Tray::createItems() {
             instantiateDevice();
         }
     });
-
 
     quitAction = new QAction(tr("&Quit"), this);
     connect(quitAction, &QAction::triggered, this, &QCoreApplication::quit);

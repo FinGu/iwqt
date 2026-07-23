@@ -23,8 +23,6 @@
 #include <cctype>
 #include <sdbus-c++/Types.h>
 
-constexpr auto SORT_ICON_PATH = ":/images/sort.png";
-
 enum KnownRoles{
     Show = Qt::UserRole, 
     Manage
@@ -55,25 +53,6 @@ ManageWindow::ManageWindow(iwd &manager, QWidget *parent): QDialog(parent), mana
         settings.setValue(SHOW_NOTIFICATIONS_SETTING, showNotificationsCheckbox->isChecked());
     });
 
-    auto currentIconTheme = settings.value(ICON_THEME_SETTING, ICON_THEME_AUTO).toString();
-    if(currentIconTheme != ICON_THEME_DARK && currentIconTheme != ICON_THEME_LIGHT) {
-        currentIconTheme = ICON_THEME_AUTO;
-    }
-
-    auto iconThemeIndex = iconThemeComboBox->findData(currentIconTheme);
-    if(iconThemeIndex >= 0) {
-        iconThemeComboBox->setCurrentIndex(iconThemeIndex);
-    }
-
-    connect(iconThemeComboBox, qOverload<int>(&QComboBox::currentIndexChanged), this, [this](int index) {
-        if(index < 0) {
-            return;
-        }
-
-        settings.setValue(ICON_THEME_SETTING, iconThemeComboBox->itemData(index).toString());
-        emit iconThemeChanged();
-    });
-
     connect(refreshButton, &QPushButton::clicked, this, [=, this]{
         try{
             refreshNetworks(); 
@@ -97,6 +76,10 @@ ManageWindow::ManageWindow(iwd &manager, QWidget *parent): QDialog(parent), mana
         pos.setY(pos.y() - 5);
 
         QToolTip::showText(pos, info, listWidget);
+    });
+
+    connect(this, &ManageWindow::iconThemeChanged, this, [=, this](){
+        updateButtonIcons();
     });
 
     setLayout(layout);
@@ -184,26 +167,20 @@ QMenu *ManageWindow::createSortItems(){
         return p;
     };
 
-    QAction *name = addAction("By name");
-    connect(name, &QAction::triggered, this, [this](){
-        currentSortMethod = SortType::ByName;
+    auto setSort = [this](SortType type){
+        currentSortMethod = type;
         settings.setValue(SORT_SETTING, (int)currentSortMethod);
         refreshNetworks();
-    });
+    };
+
+    QAction *name = addAction("By name");
+    connect(name, &QAction::triggered, this, [=](){ setSort(SortType::ByName); });
 
     QAction *last = addAction("By last connected");
-    connect(last, &QAction::triggered, this, [this](){
-        currentSortMethod = SortType::ByLast;
-        settings.setValue(SORT_SETTING, (int)currentSortMethod);
-        refreshNetworks();
-    });
+    connect(last, &QAction::triggered, this, [=](){ setSort(SortType::ByLast); });
 
     QAction *type = addAction("By type");
-    connect(type, &QAction::triggered, this, [this](){
-        currentSortMethod = SortType::ByType;
-        settings.setValue(SORT_SETTING, (int)currentSortMethod);
-        refreshNetworks();
-    });
+    connect(type, &QAction::triggered, this, [=](){ setSort(SortType::ByType); });
 
     auto sortType = (SortType)settings.value(SORT_SETTING, 0).toInt();
 
@@ -215,11 +192,48 @@ QMenu *ManageWindow::createSortItems(){
             last->setChecked(true);
             break;
         case SortType::ByType:
-            last->setChecked(true);
+            type->setChecked(true);
             break;
     }
 
     currentSortMethod = sortType;
+
+    return menu;
+}
+
+QMenu *ManageWindow::createThemeItems(){
+    auto *menu = new QMenu(themeButton);
+
+    auto *group = new QActionGroup(menu);
+
+    auto addAction = [=](const char *val){
+        QAction *p = menu->addAction(tr(val));
+
+        group->addAction(p);
+        p->setCheckable(true);
+
+        return p;
+    };
+
+    auto setTheme = [this](const QString &theme) {
+        settings.setValue(ICON_THEME_SETTING, theme);
+        emit iconThemeChanged();
+    };
+
+    QAction *aut = addAction("Auto");
+    connect(aut, &QAction::triggered, this, [=](){ setTheme(ICON_THEME_AUTO); });
+
+    QAction *dark = addAction("Dark Panel");
+    connect(dark, &QAction::triggered, this, [=](){ setTheme(ICON_THEME_DARK); });
+
+    QAction *light = addAction("Light Panel");
+    connect(light, &QAction::triggered, this, [=](){ setTheme(ICON_THEME_LIGHT); });
+
+    auto iconTheme = settings.value(ICON_THEME_SETTING, ICON_THEME_AUTO).toString();
+
+    aut->setChecked(iconTheme == ICON_THEME_AUTO);
+    dark->setChecked(iconTheme == ICON_THEME_DARK);
+    light->setChecked(iconTheme == ICON_THEME_LIGHT);
 
     return menu;
 }
@@ -229,13 +243,18 @@ void ManageWindow::createItems(){
 
     sortButton->setFixedSize(15, 15);
     sortButton->setIconSize(QSize(15, 15));
-    sortButton->setIcon(QIcon(SORT_ICON_PATH));
-
     sortButton->setStyleSheet(QString{"QToolButton {border: 0px; margin-top: -3px;} QToolButton::menu-indicator { image: none; }"});
-
     sortButton->setPopupMode(QToolButton::InstantPopup);
-
     sortButton->setMenu(createSortItems());
+    
+    themeButton = new QToolButton(this);
+    themeButton->setFixedSize(15, 15);
+    themeButton->setIconSize(QSize(15, 15));
+    themeButton->setStyleSheet(QString{"QToolButton {border: 0px; margin-top: -3px;} QToolButton::menu-indicator { image: none; }"});
+    themeButton->setPopupMode(QToolButton::InstantPopup);
+    themeButton->setMenu(createThemeItems());
+
+    updateButtonIcons();
 
     listWidget = new QListWidget(this);
     listWidget->setMouseTracking(true);
@@ -271,12 +290,6 @@ void ManageWindow::createItems(){
     avoidScansCheckbox = new QCheckBox("Avoid scans", this);
     showNotificationsCheckbox = new QCheckBox("Show notifications", this);
 
-    iconThemeLabel = new QLabel(tr("Icon theme"), this);
-    iconThemeComboBox = new QComboBox(this);
-    iconThemeComboBox->addItem(tr("Auto"), QString(ICON_THEME_AUTO));
-    iconThemeComboBox->addItem(tr("Dark panel"), QString(ICON_THEME_DARK));
-    iconThemeComboBox->addItem(tr("Light panel"), QString(ICON_THEME_LIGHT));
-
     refreshButton = new QPushButton("Refresh", this);
     refreshButton->setFixedSize(95, 25);
 
@@ -285,27 +298,25 @@ void ManageWindow::createItems(){
       
     layout = new QVBoxLayout(this);
 
-    layout->addWidget(sortButton, 0, Qt::AlignRight);
+    QHBoxLayout *layout2 = new QHBoxLayout();
+    layout2->addStretch();
+    layout2->addWidget(themeButton, 0, Qt::AlignRight);
+    layout2->addWidget(sortButton, 0, Qt::AlignRight);
+
+    layout->addLayout(layout2);
 
     layout->addWidget(listWidget);
-
-    QHBoxLayout *iconThemeLayout = new QHBoxLayout();
-
-    iconThemeLayout->addStretch();
-    iconThemeLayout->addWidget(iconThemeLabel);
-    iconThemeLayout->addWidget(iconThemeComboBox);
-
-    QHBoxLayout *layout2 = new QHBoxLayout();
     
-    layout2->addStretch();
-    layout2->addWidget(avoidScansCheckbox, 0, Qt::AlignLeft);
-    layout2->addWidget(showNotificationsCheckbox, 0, Qt::AlignLeft);
+    QHBoxLayout *layout3 = new QHBoxLayout();
+    
+    layout3->addStretch();
+    layout3->addWidget(avoidScansCheckbox, 0, Qt::AlignLeft);
+    layout3->addWidget(showNotificationsCheckbox, 0, Qt::AlignLeft);
 
-    layout2->addWidget(refreshButton);
-    layout2->addWidget(addButton);
+    layout3->addWidget(refreshButton);
+    layout3->addWidget(addButton);
 
-    layout->addLayout(iconThemeLayout);
-    layout->addLayout(layout2);
+    layout->addLayout(layout3);
 }
 
 void ManageWindow::setFlags(){
@@ -316,4 +327,18 @@ void ManageWindow::setFlags(){
     flags &= ~Qt::WindowMinimizeButtonHint;
 
     setWindowFlags(flags);
+}
+
+void ManageWindow::updateButtonIcons(){
+    auto currentIconTheme = settings.value(ICON_THEME_SETTING, ICON_THEME_AUTO).toString();
+
+    if(currentIconTheme != ICON_THEME_DARK && currentIconTheme != ICON_THEME_LIGHT) {
+        isDarkMode = Utils::getAutoDarkMode(this);
+    } else{
+        isDarkMode = currentIconTheme == ICON_THEME_DARK;
+    }
+
+    sortButton->setIcon(QIcon(isDarkMode ? SORT_ICON_PATH : DARK_SORT_ICON_PATH));
+
+    themeButton->setIcon(QIcon(isDarkMode ? THEME_ICON_PATH : DARK_THEME_ICON_PATH));
 }

@@ -15,5 +15,8 @@
    <file>images/dark-wireless-disabled.svg</file>
    <file>images/dark-wireless-none.svg</file>
    <file>images/sort.png</file>
+   <file>images/dark-sort.png</file>
+   <file>images/theme.png</file>
+   <file>images/dark-theme.png</file>
 </qresource>
 </RCC>

@@ -25,6 +25,7 @@ class QPushButton;
 class QSpinBox;
 class QTextEdit;
 class QEventLoop;
+class QTimer;
 QT_END_NAMESPACE
 
 class Tray : public QDialog {
@@ -52,6 +53,7 @@ class Tray : public QDialog {
 
     QPixmap processConnectedNetwork(network n);
     void updateEnabledTray(bool);
+    void tryRefreshTray(bool);
     void refreshTray(bool);
     void makeAgent();
     void updateIconTheme();
@@ -69,6 +71,8 @@ class Tray : public QDialog {
 
     std::unique_ptr<sdbus::IProxy> saved_proxy;
     QMenu *networksMenu = NULL;
+
+    QTimer *refreshTimer;
 
     QAction *enabledAdapterAction;
     QAction *scanAction;

@@ -5,6 +5,7 @@
 
 #include <map>
 #include <optional>
+#include <iostream>
 
 iwd::iwd() {
     this->system_bus = sdbus::createSystemBusConnection();
@@ -81,11 +82,10 @@ std::vector<known_network> iwd::known_networks(){
     for(const auto &[objpath, interfaces] : mobjs) {
         if (interfaces.find(iwd_constants::KNOWNNETWORK_IFACE) == interfaces.end()) {
             continue;
-
         }
 
         const auto &data = interfaces.at(iwd_constants::KNOWNNETWORK_IFACE);
-
+        
         out.push_back(known_network{
             {data.at("Name").get<std::string>(), data.at("Type").get<std::string>(), objpath},
             data.at("Hidden").get<bool>(),

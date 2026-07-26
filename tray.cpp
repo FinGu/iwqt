@@ -27,6 +27,7 @@
 #include <QInputDialog>
 #include <QThread>
 #include <QToolTip>
+#include <QTimer>
 
 #include <cstdio>
 #include <unistd.h>
@@ -321,6 +322,14 @@ void Tray::updateEnabledTray(bool powered){
     trayIcon->setIcon(Utils::getIcon(icon));
 }
 
+void Tray::tryRefreshTray(bool should_scan){
+    try {
+        refreshTray(should_scan);
+    } catch(...) {
+        instantiateDevice(); //try to recover
+    }
+}
+
 void Tray::refreshTray(bool should_scan) {
     networksMenu->clear();
     
@@ -372,6 +381,13 @@ void Tray::setVisible(bool visible) {
 }
 
 void Tray::createItems() {
+    refreshTimer = new QTimer(this);
+    connect(refreshTimer, &QTimer::timeout, this, [this]{
+        tryRefreshTray(!settings.value(AVOID_SCANS_SETTING, false).toBool());
+    });
+    refreshTimer->setInterval(120000); //idk if i'll make this configurable later
+    refreshTimer->start();
+
     enabledAdapterAction = new QAction(tr("&Enabled"), this);
     enabledAdapterAction->setCheckable(true);
 
@@ -383,11 +399,7 @@ void Tray::createItems() {
 
     networksMenu = new QMenu(tr("&Networks"), this);
     connect(networksMenu, &QMenu::aboutToShow, this, [this] {
-        try {
-            this->refreshTray(!settings.value(AVOID_SCANS_SETTING, false).toBool());
-        } catch(...) {
-            instantiateDevice(); //try to recover
-        }
+        tryRefreshTray(settings.value(AVOID_SCANS_SETTING, false).toBool());
     });
 
     manageAction = new QAction(tr("&Manage"), this);
@@ -397,11 +409,7 @@ void Tray::createItems() {
 
     scanAction = new QAction(tr("&Scan"), this);
     connect(scanAction, &QAction::triggered, this, [this]() {
-        try {
-            this->refreshTray(true);
-        } catch(...) {
-            instantiateDevice();
-        }
+        tryRefreshTray(true);
     });
 
     quitAction = new QAction(tr("&Quit"), this);
@@ -429,10 +437,6 @@ void Tray::createManageWindow(){
     connect(mwindow, &ManageWindow::iconThemeChanged, this, [this] {
         updateIconTheme();
 
-        try {
-            refreshTray(false);
-        } catch(...) {
-            instantiateDevice();
-        }
+        tryRefreshTray(false);
     });
 }

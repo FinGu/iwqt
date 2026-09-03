@@ -4,8 +4,11 @@
 
 #include "network.hpp"
 
+#include <algorithm>
 #include <iostream>
+#include <map>
 #include <optional>
+#include <vector>
 #include <sdbus-c++/Types.h>
 
 void device::scan() {
@@ -85,6 +88,34 @@ void device::disconnect() {
     auto call = proxy->createMethodCall(sdbus::InterfaceName{iwd_constants::STATION_IFACE}, sdbus::MethodName{"Disconnect"});
 
     proxy->callMethod(call);
+}
+
+std::unique_ptr<sdbus::IProxy> device::watch_properties(std::function<void()> on_change) {
+    auto proxy = sdbus::createProxy(*this->manager->system_bus,
+                                    this->manager->service_name,
+                                    this->path
+                                   );
+
+    proxy->uponSignal("PropertiesChanged")
+        .onInterface("org.freedesktop.DBus.Properties")
+        .call([on_change = std::move(on_change)](const std::string &iface,
+                                                 const std::map<std::string, sdbus::Variant> &changed,
+                                                 const std::vector<std::string> &invalidated) {
+            if(iface != iwd_constants::STATION_IFACE) {
+                return;
+            }
+
+            auto touched = [&](const char *key) {
+                return changed.find(key) != changed.end()
+                    || std::find(invalidated.begin(), invalidated.end(), key) != invalidated.end();
+            };
+
+            if(touched("State") || touched("ConnectedNetwork")) {
+                on_change();
+            }
+        });
+
+    return proxy;
 }
 
 std::optional<sdbus::ObjectPath> device::get_connected_network(){

@@ -65,14 +65,18 @@ class Tray : public QDialog {
     void fillMenu();
     void createManageWindow();
 
+    void watchDeviceState();
+
     void connectedHandler(network n, QPixmap icon);
 
     QPixmap getIconForStrength(network::strength_type st);
 
     std::unique_ptr<sdbus::IProxy> saved_proxy;
+    std::unique_ptr<sdbus::IProxy> state_watch;
     QMenu *networksMenu = NULL;
 
     QTimer *refreshTimer;
+    QTimer *stateDebounce;
 
     QAction *enabledAdapterAction;
     QAction *scanAction;

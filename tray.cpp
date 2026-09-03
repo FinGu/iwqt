@@ -96,6 +96,17 @@ void Tray::instantiateDevice() {
             }
         }
     }
+
+    watchDeviceState();
+}
+
+void Tray::watchDeviceState() {
+    // signal arrives on the sdbus event-loop thread; bounce to the Qt thread
+    state_watch = cur_device.watch_properties([this] {
+        QMetaObject::invokeMethod(this, [this] {
+            stateDebounce->start();
+        }, Qt::QueuedConnection);
+    });
 }
 
 std::string Tray::requestPassphrase(const std::string& path) {
@@ -387,6 +398,14 @@ void Tray::createItems() {
     });
     refreshTimer->setInterval(120000); //idk if i'll make this configurable later
     refreshTimer->start();
+
+    // coalesces the burst of PropertiesChanged iwd emits per state transition
+    stateDebounce = new QTimer(this);
+    stateDebounce->setSingleShot(true);
+    stateDebounce->setInterval(200);
+    connect(stateDebounce, &QTimer::timeout, this, [this]{
+        tryRefreshTray(false);
+    });
 
     enabledAdapterAction = new QAction(tr("&Enabled"), this);
     enabledAdapterAction->setCheckable(true);

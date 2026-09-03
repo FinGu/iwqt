@@ -32,6 +32,10 @@ class device {
     std::optional<sdbus::ObjectPath> get_connected_network();
 
     std::vector<network> get_networks();
+
+    // Subscribes to Station PropertiesChanged; on_change fires on State/ConnectedNetwork
+    // transitions. Keep the returned proxy alive for the subscription to persist.
+    std::unique_ptr<sdbus::IProxy> watch_properties(std::function<void()> on_change);
 };
 
 #endif
